@@ -1,0 +1,336 @@
+{
+    "kind": "template",
+    "properties": {
+        "displayName": "VM ARM Template",
+        "description": "VM ARM Template",
+        "dependsOn": ["get-vm-name"],
+        "template": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "type": "string",
+            "allowedValues": [ "prd", "dev"]
+        },
+        "region": {
+            "type": "string",
+            "allowedValues": [ "EastUS", "WestUS"]
+        },
+        "vmName": {
+            "type": "String"
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": ["Small", "Medium", "Large"],
+            "defaultValue": "Small"
+        },
+        "ApplicationName": {
+            "type": "String"
+        },
+        "ApplicationOwner": {
+            "type": "String"
+        },
+        "ContactEmail": {
+            "type": "String"
+        },
+        "CostCenter": {
+            "type": "String"
+        },
+        "BusinessCriticality": {
+            "type": "String"
+        },
+        "DataClassification": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "location": "[replace(replace(parameters('region'), 'EastUS', 'eus'), 'WestUS', 'wus')]",
+        "nameFormat": "[concat('-', parameters('environment'), '-', variables('location'), '-', parameters('vmName') )]",
+        "networkName": "[concat('-', parameters('environment'), '-', variables('location') )]",
+        "shortName": {
+            "virtualNetwork": "vnet",
+            "networkSecurityGroup": "nsg",
+            "networkInterface": "nic",
+            "linuxVM": "lvm",
+            "publicIP": "pip",
+            "osDisk": "osd",
+            "dataDisk": "dd"
+        },
+        "Small": "Standard_B1ms",
+        "Medium": "Standard_B2ms",
+        "Large": "Standard_B4ms"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').networkSecurityGroup, variables('nameFormat'))]",
+            "location": "[parameters('region')]",
+            "tags": {
+                "ApplicationName": "[parameters('ApplicationName')]",
+                "ApplicationOwner": "[parameters('ApplicationOwner')]",
+                "ContactEmail": "[parameters('ContactEmail')]",
+                "CostCenter": "[parameters('CostCenter')]",
+                "BusinessCriticality": "[parameters('BusinessCriticality')]",
+                "DataClassification": "[parameters('DataClassification')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').publicIP, variables('nameFormat'))]",
+            "dependsOn": [],
+            "location": "[parameters('region')]",
+            "tags": {
+                "ApplicationName": "[parameters('ApplicationName')]",
+                "ApplicationOwner": "[parameters('ApplicationOwner')]",
+                "ContactEmail": "[parameters('ContactEmail')]",
+                "CostCenter": "[parameters('CostCenter')]",
+                "BusinessCriticality": "[parameters('BusinessCriticality')]",
+                "DataClassification": "[parameters('DataClassification')]"
+            },
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').virtualNetwork, variables('networkName'))]",
+            "location": "[parameters('region')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[concat(variables('shortName').linuxVM, variables('nameFormat'))]",
+            "location": "[parameters('region')]",
+            "tags": {
+                "ApplicationName": "[parameters('ApplicationName')]",
+                "ApplicationOwner": "[parameters('ApplicationOwner')]",
+                "ContactEmail": "[parameters('ContactEmail')]",
+                "CostCenter": "[parameters('CostCenter')]",
+                "BusinessCriticality": "[parameters('BusinessCriticality')]",
+                "DataClassification": "[parameters('DataClassification')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('shortName').networkInterface, variables('nameFormat')))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables(parameters('vmSize'))]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "18.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(variables('shortName').osDisk, variables('nameFormat'))]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('shortName').linuxVM, variables('nameFormat'))]",
+                    "adminUsername": "azureuser",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/azureuser/.ssh/authorized_keys",
+                                    "keyData": "yourPublicKey"
+                                }
+                            ]
+                        },
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('shortName').networkInterface, variables('nameFormat')))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').networkSecurityGroup, variables('nameFormat'), '/SSH')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('shortName').networkSecurityGroup, variables('nameFormat')))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "22",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 300,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').virtualNetwork, variables('networkName'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', concat(variables('shortName').virtualNetwork, variables('networkName')))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.0.0.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(variables('shortName').networkInterface, variables('nameFormat'))]",
+            "location": "[parameters('region')]",
+            "tags": {
+                "ApplicationName": "[parameters('ApplicationName')]",
+                "ApplicationOwner": "[parameters('ApplicationOwner')]",
+                "ContactEmail": "[parameters('ContactEmail')]",
+                "CostCenter": "[parameters('CostCenter')]",
+                "BusinessCriticality": "[parameters('BusinessCriticality')]",
+                "DataClassification": "[parameters('DataClassification')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('shortName').publicIP, variables('nameFormat')))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat(variables('shortName').virtualNetwork, variables('networkName')), 'default')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('shortName').networkSecurityGroup, variables('nameFormat')))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('shortName').publicIP, variables('nameFormat')))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat(variables('shortName').virtualNetwork, variables('networkName')), 'default')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('shortName').networkSecurityGroup, variables('nameFormat')))]"
+                }
+            }
+        }
+    ]
+},
+        "resourceGroup": "VirtualMachine-RG",
+        "parameters": {
+            "environment": {
+                "value": "[parameters('environment')]"
+            },
+            "region": {
+                "value": "[parameters('region')]"
+            },
+            "vmSize": {
+                "value": "[parameters('vmSize')]"
+            },
+            "vmName": {
+                "value": "[artifacts('get-vm-name').outputs.vmName]"
+            },
+            "ApplicationName": {
+                "value": "[parameters('ApplicationName')]"
+            },
+            "ApplicationOwner": {
+                "value": "[parameters('ApplicationOwner')]"
+            },
+            "ContactEmail": {
+                "value": "[parameters('ContactEmail')]"
+            },
+            "BusinessCriticality": {
+                "value": "[parameters('BusinessCriticality')]"
+            },
+            "DataClassification": {
+                "value": "[parameters('DataClassification')]"
+            }
+        }
+    }
+}
+

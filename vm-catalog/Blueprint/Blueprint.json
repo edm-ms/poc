@@ -1,0 +1,73 @@
+{
+    "properties": {
+      "displayName": "New Project Blueprint",
+      "description": "Deploys resource group with tagging and role assignment.",
+      "targetScope": "subscription",
+      "parameters": {
+        "Environment": {
+          "type": "string",
+          "metadata": {
+            "displayName": "Prod, Dev"
+          },
+          "allowedValues": [
+            "prd",
+            "dev"
+          ],
+          "defaultValue": "prd"
+        },
+        "Region": {
+          "type": "string",
+          "allowedValues": [ "EastUS", "WestUS" ],
+          "defaultValue": "EastUS"
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues":[ "Small", "Medium", "Large"],
+            "defaultValue": "Small"
+        },
+        "ApplicationName": {
+            "type": "string"
+          },
+        "ApplicationOwner": {
+            "type": "string"
+          },
+        "ContactEmail": {
+            "type": "string"
+          },
+        "CostCenter": {
+            "type": "string",
+            "allowedValues": [ "00001122", "11224455" ]
+          },
+        "BusinessCriticality": {
+            "type": "string",
+            "allowedValues": [
+              "Tier0",
+              "Tier1",
+              "Tier2",
+              "Tier3"
+            ],
+            "defaultValue": "Tier2"
+          },
+        "DataClassification": {
+            "type": "string",
+            "allowedValues": [
+              "Public",
+              "Internal",
+              "Restricted",
+              "Confidential"
+            ],
+            "defaultValue": "Internal"
+          }
+      },
+      "resourceGroups": {
+        "VirtualMachine-RG": {
+          "name": "rg-vm",
+          "location": "eastus",
+          "metadata": {
+            "displayName": "VM Resource Group"
+          },
+          "dependsOn": []
+        }
+      }
+    }
+  }

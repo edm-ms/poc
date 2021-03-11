@@ -17,7 +17,8 @@
           "defaultValue": "eastus"
       },
       "resourceGroupName": {
-          "type": "string"
+          "type": "string",
+          "defaultValue": "rg-sqlrpfunction"
       }
     },
     "functions": [],
@@ -46,6 +47,7 @@
             "name": "createFunction",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
+            "location": "[parameters('location')]",
             "subscriptionId": "[parameters('subscriptionId')]",
             "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createRole')]"],
             "properties": {

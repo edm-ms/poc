@@ -47,7 +47,7 @@
                             "AzureUSGovernment": "usgovvirginia"
                         },
                         "location": "[resourceGroup().location]",
-                        "functionName": "register-sql-iaas-rp"
+                        "functionName": "regsqliaasrp"
                     },
                     "resources": [
                         {
@@ -108,26 +108,27 @@
                             "name": "[concat(variables('functionAppName'), '/', variables('functionName'))]",
                             "location": "[variables('location')]",
                             "dependsOn": [
-                            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
                             ],
                             "properties": {
-                                "config": {},
+                                "config": {
+                                    "bindings": [
+                                        {
+                                            "name": "req",
+                                            "webHookType": "genericJson",
+                                            "direction": "in",
+                                            "type": "httpTrigger"
+                                        },
+                                        {
+                                            "name": "res",
+                                            "direction": "out",
+                                            "type": "http"
+                                        }
+                                    ]
+                                },
                                 "files": {
-                                    "registerSQLrp.ps1": "Import-Module -Name Az.Accounts"
+                                    "registerSQLrp.ps1": "Import-Module -Name Az.Accounts\\r\\nImport-Module -Name Az.Network\\r\\n\\r\\n$SubscriptionList = Get-AzSubscription\\r\\n\\r\\nforeach ($Subscription in $SubscriptionList) {\\r\\n\\r\\n    $subName = $Subscription.Name\\r\\n    $subID = $Subscription.Id\\r\\n\\r\\n    Write-Host \\\"`n`n--------------------$subName----------------------------`n`n\\\"\\r\\n\\r\\n    try {\\r\\n        Write-Host \\\"Setting powershell context to subscriptionid: $subID\\\"\\r\\n        Set-AzContext -SubscriptionId $subID -ErrorAction Stop | Out-Null\\r\\n        $allRPstate = Get-AzResourceProvider -ListAvailable | Select-Object ProviderNamespace, RegistrationState\\r\\n    \\r\\n        # // Check to see if resource provider is registered and then register\\r\\n        if ($allRPstate | Where-Object ProviderNamespace -eq \\\"Microsoft.SqlVirtualMachine\\\" | Where-Object RegistrationState -eq \\\"NotRegistered\\\") { \\r\\n            Write-Host \\\"Registering Microsoft.SqlVirtualMachine resource provider for $subName\\\"\\r\\n            Register-AzResourceProvider -ProviderNamespace Microsoft.SqlVirtualMachine -ErrorAction Stop | Out-Null\\r\\n        }\\r\\n\\r\\n        else { Write-Host \\\"Microsoft.SqlVirtualMachine resource provider already registered for $subName\\\" }\\r\\n\\r\\n        # // Check to see if resource provider feature is registered and then register\\r\\n        if (Get-AzProviderFeature -FeatureName \\\'BulkRegistration\\\' -ProviderNamespace \\\'Microsoft.SqlVirtualMachine\\\' | Where-Object RegistrationState -eq \\\"NotRegistered\\\") {\\r\\n            Write-Host \\\"Registering SQL VM provider feature for $subName\\\"\\r\\n            Register-AzProviderFeature -FeatureName BulkRegistration -ProviderNamespace Microsoft.SqlVirtualMachine -ErrorAction Stop | Out-Null\\r\\n        }\\r\\n\\r\\n        else { Write-Host \\\"Microsoft.SqlVirtualMachine Bulkregistration feature already registered for $subName\\\" }\\r\\n\\r\\n    }\\r\\n    Catch {\\r\\n        $message = $_.Exception.Message\\r\\n        Write-Error \\\"We failed to complete the resource registration for $subName because of the following reason: $message\\\"\\r\\n\\r\\n    }\\r\\n}"
                                 }
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Web/sites/hostNameBindings",
-                            "apiVersion": "2018-11-01",
-                            "name": "[concat(variables('functionAppName'), '/', variables('functionAppName'), '.azurewebsites.net')]",
-                            "location": "[variables('location')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-                                ],
-                            "properties": {
-                                "siteName": "[variables('functionAppName')]",
-                                "hostNameType": "Verified"
                             }
                         },
                         {

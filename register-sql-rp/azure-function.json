@@ -1,41 +1,29 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {
-        "functionAppName": {
-            "type": "string",
-            "defaultValue": "[concat('sqlrp', uniqueString(resourceGroup().id))]",
-            "metadata": {
-                "description": "Specify the name of the function application"
-            }
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Specify the location for the function application resources"
-            }
-        }
-    },
+    "parameters": {},
     "variables": {
-        "hostingPlanName": "[parameters('functionAppName')]",
+        "functionAppName": "[concat('sqlrp', uniqueString(resourceGroup().id))]",
+        "hostingPlanName": "[variables('functionAppName')]",
         "storageAccountName": "[concat('storage', uniquestring(resourceGroup().id))]",
         "insightsLocation": {
             "AzureCloud": "eastus",
             "AzureUSGovernment": "usgovvirginia"
-        }
+        },
+        "location": "[resourceGroup().location]"
+
     },
     "resources": [
         {
-            "name": "[parameters('functionAppName')]",
+            "name": "[variables('functionAppName')]",
             "type": "Microsoft.Web/sites",
             "apiVersion": "2019-08-01",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "kind": "functionapp",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[resourceId('microsoft.insights/components', parameters('functionAppName'))]"
+                "[resourceId('microsoft.insights/components', variables('functionAppName'))]"
             ],
             "identity": {
                 "type": "SystemAssigned"
@@ -57,7 +45,7 @@
                         },
                         {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components', parameters('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
+                            "value": "[reference(resourceId('microsoft.insights/components', variables('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
                         },
                         {
                             "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
@@ -65,15 +53,19 @@
                         },
                         {
                             "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[toLower(parameters('functionAppName'))]"
+                            "value": "[toLower(variables('functionAppName'))]"
                         },
                         {
                             "name": "WEBSITE_TIME_ZONE",
                             "value": "UTC"
+                        },
+                        {
+                        "name": "WEBSITE_RUN_FROM_ZIP",
+                        "value": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/registersqlrp.zip"
                         }
                     ]
                 },
-                "name": "[parameters('functionAppName')]",
+                "name": "[variables('functionAppName')]",
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
             }
@@ -82,7 +74,7 @@
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2019-08-01",
             "name": "[variables('hostingPlanName')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "properties": {
                 "name": "[variables('hostingPlanName')]"
             },
@@ -98,28 +90,28 @@
             "apiVersion": "2019-06-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "sku": {
                 "name": "Standard_LRS"
             }
         },
         {
             "apiVersion": "2018-05-01-preview",
-            "name": "[parameters('functionAppName')]",
+            "name": "[variables('functionAppName')]",
             "type": "Microsoft.Insights/components",
             "location": "[variables('insightsLocation')[environment().name]]",
             "tags": {
-                "[concat('hidden-link:', resourceId('Microsoft.Web/sites/', parameters('functionAppName')))]": "Resource"
+                "[concat('hidden-link:', resourceId('Microsoft.Web/sites/', variables('functionAppName')))]": "Resource"
             },
             "properties": {
-                "ApplicationId": "[parameters('functionAppName')]"
+                "ApplicationId": "[variables('functionAppName')]"
             }
         }
     ],
     "outputs": {
         "principalId": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2019-08-01', 'Full').identity.principalId]"
+            "value": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2019-08-01', 'Full').identity.principalId]"
         }
     }
 }

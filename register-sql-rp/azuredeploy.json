@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "mgtGroup": {
@@ -8,6 +8,16 @@
         "metadata": {
           "description": "Management group where identity is scoped."
         }
+      },
+      "subIDforFunction": {
+          "type": "string"
+      },
+      "location": {
+          "type": "string",
+          "defaultValue": "eastus"
+      },
+      "resourceGroupName": {
+          "type": "string"
       }
     },
     "functions": [],
@@ -35,6 +45,7 @@
             "name": "createFunction",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
+            "subscriptionId": "[parameters('subIDforFunction')]",
             "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createRole')]"],
             "properties": {
                 "mode": "Incremental",
@@ -42,7 +53,14 @@
                     "uri": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/azure-function.json",
                     "contentVersion": "1.0.0.0"
                 },
-                "parameters": {}
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "resourceGroupName": {
+                        "value": "[parameters('resourceGroupName')]"
+                    }
+                }
             }
         }
 

@@ -33,7 +33,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/sql-rp-role.json",
+                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/testingcodeupload/register-sql-rp/sql-rp-role.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -53,7 +53,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/azure-function.json",
+                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/testingcodeupload/register-sql-rp/azure-function.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

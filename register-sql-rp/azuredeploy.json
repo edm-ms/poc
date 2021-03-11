@@ -65,7 +65,18 @@
                     }
                 }
             }
-        }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createFunction')]"],
+            "apiVersion": "2020-03-01-preview",
+            "name": "[guid(parameters('subscriptionId'))]",
+            "properties": {
+                "roleDefinitionId": "[reference('createRole').outputs.roleID]",
+                "principalId": "[reference('createFunction').outputs.principalId.value]",
+                "scope": "[concat('providers/Microsoft.Management/managementGroups/', parameters('mgtGroup'))]"
+            }
+    }    
 
     ],
     "outputs": {}

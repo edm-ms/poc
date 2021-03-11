@@ -40,5 +40,11 @@
           ]
         }
       }
-    ]
+    ],
+    "outputs": {
+      "roleID": {
+        "type": "string",
+        "value": "[reference(resourceId('Microsoft.Authorization/roleDefinitions',variables('roleDefName')))]"
+      }
+    }
   }

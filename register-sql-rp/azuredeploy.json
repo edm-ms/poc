@@ -9,7 +9,7 @@
           "description": "Management group where identity is scoped."
         }
       },
-      "subIDforFunction": {
+      "subscriptionId": {
           "type": "string"
       },
       "location": {
@@ -28,6 +28,7 @@
             "name": "createRole",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
+            "location": "[parameters('location')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -45,7 +46,7 @@
             "name": "createFunction",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-10-01",
-            "subscriptionId": "[parameters('subIDforFunction')]",
+            "subscriptionId": "[parameters('subscriptionId')]",
             "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createRole')]"],
             "properties": {
                 "mode": "Incremental",

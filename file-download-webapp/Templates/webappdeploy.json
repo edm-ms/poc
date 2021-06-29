@@ -1,0 +1,334 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "East US"
+    },
+    "servername": {
+      "type": "string",
+      "defaultValue": "asp-filedownload"
+    },
+    "sitename": {
+      "type": "string",
+      "defaultValue": "aUniqueWebname"
+    },
+    "aadDomain": {
+      "type": "string",
+      "defaultValue": "yourDomain.com"
+    },
+    "siteTitle": {
+      "type": "string",
+      "defaultValue": "Corporate File Download"
+    },
+    "siteZipUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/edm-ms/poc/raw/main/file-download-webapp/site.zip"
+    }
+  },
+  "functions": [],
+  "variables": {
+    "aadTenantId": "[subscription().tenantId]",
+    "containerName": "iso",
+    "storagePrefix": "fileshare",
+    "storageSuffix": "core.windows.net"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "appservice",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "name": {
+            "value": "[parameters('servername')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.Web/serverfarms",
+              "apiVersion": "2021-01-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "B1",
+                "tier": "Basic",
+                "size": "B1",
+                "family": "B",
+                "capacity": 1
+              },
+              "kind": "app",
+              "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+              }
+            }
+          ],
+          "outputs": {
+            "serverFarmId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Web/serverfarms', parameters('name'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "storage",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "name": {
+            "value": "[variables('storagePrefix')]"
+          },
+          "containerName": {
+            "value": "[variables('containerName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS"
+              ]
+            },
+            "containerName": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "variables": {
+            "tmpStorageName": "[toLower(replace(replace(parameters('name'), ' ', ''), '-', ''))]",
+            "tmpStorageString": "[take(uniqueString(resourceGroup().id), sub(24, length(variables('tmpStorageName'))))]",
+            "storageName": "[format('sa{0}{1}', variables('tmpStorageName'), variables('tmpStorageString'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-02-01",
+              "name": "[variables('storageName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "allowBlobPublicAccess": false,
+                "accessTier": "Hot",
+                "minimumTlsVersion": "TLS1_2",
+                "supportsHttpsTrafficOnly": true
+              },
+              "kind": "StorageV2",
+              "sku": {
+                "name": "[parameters('sku')]",
+                "tier": "Standard"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-04-01",
+              "name": "[format('{0}/default/{1}', variables('storageName'), parameters('containerName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "accountKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-02-01').keys[0].value]"
+            },
+            "storageName": {
+              "type": "string",
+              "value": "[variables('storageName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "webapp",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "siteTitle": {
+            "value": "[parameters('siteTitle')]"
+          },
+          "siteZipUrl": {
+            "value": "[parameters('siteZipUrl')]"
+          },
+          "name": {
+            "value": "[parameters('sitename')]"
+          },
+          "serverFarmId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'appservice'), '2019-10-01').outputs.serverFarmId.value]"
+          },
+          "storageContainerName": {
+            "value": "[variables('containerName')]"
+          },
+          "storageConnectionString": {
+            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', reference(resourceId('Microsoft.Resources/deployments', 'storage'), '2019-10-01').outputs.storageName.value, reference(resourceId('Microsoft.Resources/deployments', 'storage'), '2019-10-01').outputs.accountKey.value, variables('storageSuffix'))]"
+          },
+          "aadDomain": {
+            "value": "[parameters('aadDomain')]"
+          },
+          "aadTenantId": {
+            "value": "[variables('aadTenantId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "serverFarmId": {
+              "type": "string"
+            },
+            "storageConnectionString": {
+              "type": "string"
+            },
+            "storageContainerName": {
+              "type": "string"
+            },
+            "aadDomain": {
+              "type": "string"
+            },
+            "aadTenantId": {
+              "type": "string"
+            },
+            "siteTitle": {
+              "type": "string"
+            },
+            "siteZipUrl": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2021-01-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "serverFarmId": "[parameters('serverFarmId')]",
+                "siteConfig": {
+                  "netFrameworkVersion": "v4.0",
+                  "metadata": [
+                    {
+                      "name": "CURRENT_STACK",
+                      "value": "dotnetcore"
+                    }
+                  ],
+                  "appSettings": [
+                    {
+                      "name": "SITE_TITLE",
+                      "value": "[parameters('siteTitle')]"
+                    },
+                    {
+                      "name": "WEBSITE_RUN_FROM_PACKAGE",
+                      "value": "[parameters('siteZipUrl')]"
+                    },
+                    {
+                      "name": "AZURE_STORAGE_CONNECTION_STRING",
+                      "value": "[parameters('storageConnectionString')]"
+                    },
+                    {
+                      "name": "AZURE_STORAGE_CONTAINER",
+                      "value": "[parameters('storageContainerName')]"
+                    },
+                    {
+                      "name": "AZURE_STORAGE_SAS_TOKEN_DURATION",
+                      "value": "15"
+                    },
+                    {
+                      "name": "AzureAd:ClientId",
+                      "value": ""
+                    },
+                    {
+                      "name": "AzureAd:Domain",
+                      "value": "[parameters('aadDomain')]"
+                    },
+                    {
+                      "name": "AzureAd:TenantId",
+                      "value": "[parameters('aadTenantId')]"
+                    },
+                    {
+                      "name": "SAS_GENERATION_METHOD",
+                      "value": "webapp"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'appservice')]",
+        "[resourceId('Microsoft.Resources/deployments', 'storage')]"
+      ]
+    }
+  ],
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.3.1.62928",
+      "templateHash": "14564518781517016177"
+    }
+  }
+}

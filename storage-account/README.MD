@@ -1,0 +1,3 @@
+This creates a storage account with blob soft delete, container soft delete, advanced threat protection for storage, firewall rule allowing access only from the specified IP, enforces TLS 1.2 and HTTPS only, sets no public blob access, and applies a do not delete resource lock on the storage account.
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fedm-ms%2Fpoc%2Fmain%2Fstorage-account%2Fstorage-account.json)

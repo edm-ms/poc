@@ -1,0 +1,50 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "mgtGroup": {
+        "type": "string",
+        "metadata": {
+          "description": "Management group where identity is scoped."
+        }
+      }
+    },
+    "variables": {
+      "roleDefName": "[guid(deployment().name, parameters('mgtGroup'))]",
+      "roleName": "[concat('SQL VM Resource Provider Register for ', parameters('mgtGroup'))]",
+      "roleDescription": "This role is used to enable the SQL VM resource provider on subscriptions.",
+      "actions": [
+        "Microsoft.SqlVirtualMachine/register/action",
+        "Microsoft.Features/providers/features/register/action",
+        "Microsoft.Resources/subscriptions/read"
+      ]
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Authorization/roleDefinitions",
+        "apiVersion": "2018-07-01",
+        "name": "[variables('roleDefName')]",
+        "properties": {
+          "roleName": "[variables('roleName')]",
+          "description": "[variables('roleDescription')]",
+          "type": "customRole",
+          "isCustom": true,
+          "permissions": [
+            {
+              "actions": "[variables('actions')]",
+              "notActions": []
+            }
+          ],
+          "assignableScopes": [
+            "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgtGroup'))]"
+          ]
+        }
+      }
+    ],
+    "outputs": {
+      "roleID": {
+        "type": "string",
+        "value": "[split(reference(resourceId('Microsoft.Authorization/roleDefinitions',variables('roleDefName')), '2018-07-01', 'Full').resourceId, '/')[2]]"
+      }
+    }
+  }

@@ -1,0 +1,25 @@
+﻿@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h1>Profile</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in this.Model.CurrentPrincipal.Claims)
+        {
+            <tr>
+                <td><code>@claim.Type</code></td>
+                <td>@claim.Value</td>
+            </tr>
+        }
+    </tbody>
+</table>

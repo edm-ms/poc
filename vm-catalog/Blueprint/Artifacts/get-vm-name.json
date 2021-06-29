@@ -1,0 +1,131 @@
+{
+    "kind": "template",
+    "properties": {
+        "displayName": "Pre-Deployment Script",
+        "description": "Find next VM name",
+        "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {
+                "Environment": {
+                    "type": "string",
+                    "allowedValues": [ "prd", "dev"]
+                },
+                "Region": {
+                    "type": "string",
+                    "allowedValues": [ "EastUS", "WestUS"]
+                },
+                "resourceGroup": {
+                    "type": "string",
+                    "defaultValue": "[resourceGroup().name]"
+                },
+                "vmSize": {
+                    "type": "string",
+                    "allowedValues": ["Small", "Medium", "Large"],
+                    "defaultValue": "Small"
+                },
+                "utcValue": {
+                    "type": "string",
+                    "defaultValue": "[utcNow()]"
+                },
+                "uamiResourceID": {
+                    "type": "string"
+                }
+            },
+            "variables": {
+                "location": "[replace(replace(parameters('Region'), 'EastUS', 'eus'), 'WestUS', 'wus')]"
+            },
+            "resources": [
+                {
+                "type": "Microsoft.Resources/deploymentScripts",
+                "apiVersion": "2019-10-01-preview",
+                "name": "[concat('lookupVM-', variables('location'))]",
+                "location": "[parameters('Region')]",
+                "dependsOn": [],
+                "identity": {
+                    "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                        "[parameters('uamiResourceID')]": {
+                    }
+                    }
+                },
+                "kind": "AzurePowerShell",
+                "properties": {
+                    "azPowerShellVersion": "3.0",
+                    "forceUpdateTag": "[parameters('utcValue')]",
+                    "timeout": "PT15M",
+                    "arguments": "[format(' -Environment {0} -location {1} -resourceGroup {2}', parameters('Environment'), variables('location'), parameters('resourceGroup') )]",
+                    "scriptContent": "
+                    param(
+                        [string] [Parameter(Mandatory=$true)] $Environment,
+                        [string] [Parameter(Mandatory=$true)] $location,
+                        [string] [Parameter(Mandatory=$true)] $resourceGroup
+                        )
+                    $ErrorActionPreference = 'Stop'
+                    $DeploymentScriptOutputs = @{}
+        
+                    $vmNum = @()
+        
+                    Install-Module -Name Az.ResourceGraph -Force
+                    Import-Module -Name Az.ResourceGraph
+        
+                    $vms = Search-AzGraph -Query \"
+                        Resources | where type=='microsoft.compute/virtualmachines' 
+                        | where resourceGroup == '$resourceGroup'
+                        | where name contains '$Environment'
+                        | where name contains '$location'
+                        | project name\"
+                    
+                    $vms = $vms.Data
+
+                    if ($vms -eq ' ') { $vms = [pscustomobject]@{ name = 'vm-Environment-location-00000' }  }
+                    if ($vms -eq $null) { $vms = [pscustomobject]@{ name = 'vm-Environment-location-00000' }  }
+
+                    foreach ($vm in $vms) { $vmNum += ($vm.name).split('-')[3]  }
+                    $vmNum = $vmnum | sort
+
+                    $name = $vmnum
+        
+                    if ($vmNum.count -gt 1 ) { $name = $vmnum[$vmnum.Length-1] }
+
+                    $name = [int]$name
+                    $name = $name + 1
+                    $name = [string]$name
+        
+                    do {
+                        $name = '0' + $name
+                    } until ($name.length -ge 5)
+        
+                    $DeploymentScriptOutputs['hostNumber'] = $name
+        
+                    ",
+                    "cleanupPreference": "OnSuccess",
+                    "retentionInterval": "P1D"
+                }
+                }
+            ],
+            "outputs": {
+                "vmName": {
+                    "type": "string",
+                    "value": "[reference(concat('lookupVM-', variables('location'))).outputs.hostNumber]"
+                }
+            }            
+},
+        "resourceGroup": "VirtualMachine-RG",
+        "parameters": {
+            "Environment": {
+                "value": "[parameters('Environment')]"
+            },
+            "Region": {
+                "value": "[parameters('Region')]"
+            },
+            "vmSize": {
+                "value": "[parameters('vmSize')]"
+            },
+            "uamiResourceID":{
+                "value": "[parameters('uamiResourceID')]"
+            }
+        }
+    }
+}
+

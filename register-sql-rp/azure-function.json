@@ -1,0 +1,199 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "resourceGroupName": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2020-06-01",
+            "name": "[parameters('resourceGroupName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "Application Purpose": "Function to Register SQL IaaS Provider"
+            },
+            "properties": {}
+        },
+        {
+            "name": "functionDeploy",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-10-01",
+            "dependsOn": ["[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"],
+            "resourceGroup": "[parameters('resourceGroupName')]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "Inner"
+                },
+                "parameters": {},
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "time": {
+                            "type": "string",
+                            "defaultValue": "[utcNow()]"
+                        }
+                    },
+                    "variables": {
+                        "functionAppName": "[concat('sqlrp', uniqueString(parameters('time')))]",
+                        "hostingPlanName": "[variables('functionAppName')]",
+                        "storageAccountName": "[concat('storage', uniquestring( parameters('time')))]",
+                        "insightsLocation": {
+                            "AzureCloud": "eastus",
+                            "AzureUSGovernment": "usgovvirginia"
+                        },
+                        "location": "[resourceGroup().location]",
+                        "functionName": "regsqliaasrp"
+                    },
+                    "resources": [
+                        {
+                            "name": "[variables('functionAppName')]",
+                            "type": "Microsoft.Web/sites",
+                            "apiVersion": "2019-08-01",
+                            "location": "[variables('location')]",
+                            "kind": "functionapp",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                                "[resourceId('microsoft.insights/components', variables('functionAppName'))]"
+                            ],
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
+                            "properties": {
+                                "siteConfig": {
+                                    "appSettings": [
+                                        {
+                                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                                            "value": "powershell"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_WORKER_RUNTIME_VERSION",
+                                            "value": "~7"
+                                        },
+                                        {
+                                            "name": "AzureWebJobsStorage",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_WORKER_PROCESS_COUNT",
+                                            "value": "10"
+                                        },
+                                        {
+                                            "name": "PSWorkerInProcConcurrencyUpperBound",
+                                            "value": "10"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                                            "value": "~3"
+                                        },
+                                        {
+                                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                                            "value": "[reference(resourceId('microsoft.insights/components', variables('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')),'2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTSHARE",
+                                            "value": "[toLower(variables('functionAppName'))]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_TIME_ZONE",
+                                            "value": "UTC"
+                                        }
+                                    ]
+                                },
+                                "name": "[variables('functionAppName')]",
+                                "clientAffinityEnabled": false,
+                                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Web/sites/functions",
+                            "apiVersion": "2018-11-01",
+                            "name": "[concat(variables('functionAppName'), '/', variables('functionName'))]",
+                            "location": "[variables('location')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                            ],
+                            "properties": {
+                                "config": {
+                                    "bindings": [
+                                        {
+                                            "name": "Timer",
+                                            "type": "timerTrigger",
+                                            "direction": "in",
+                                            "schedule": "0 0 0 * * 0"
+                                        }
+                                    ]
+                                },
+                                "files": {
+                                    "registerSQLrp.ps1": "# Input bindings are passed in via param block.\r\nparam($Timer)\r\n\r\nImport-Module -Name Az.Accounts\r\nImport-Module -Name Az.Network\r\n\r\n$SubscriptionList = Get-AzSubscription\r\n\r\n$SubscriptionList | ForEach-Object -Parallel {\r\n\r\n    $subName = $_.Name\r\n    $subId = $_.Id\r\n\r\n    try {\r\n        Write-Host \"Setting powershell context to subscriptionid: $subID\"\r\n        Set-AzContext -SubscriptionId $subID -ErrorAction Stop | Out-Null\r\n        $allRPstate = Get-AzResourceProvider -ListAvailable | Select-Object ProviderNamespace, RegistrationState\r\n    \r\n        # // Check to see if resource provider is registered and then register\r\n        if ($allRPstate | Where-Object ProviderNamespace -eq \"Microsoft.SqlVirtualMachine\" | Where-Object RegistrationState -eq \"NotRegistered\") { \r\n            Write-Host \"Registering Microsoft.SqlVirtualMachine resource provider for $subName with ID $subId\"\r\n            Register-AzResourceProvider -ProviderNamespace Microsoft.SqlVirtualMachine -ErrorAction Stop | Out-Null\r\n        }\r\n\r\n        else { Write-Host \"Microsoft.SqlVirtualMachine resource provider already registered for $subName\" }\r\n\r\n        # // Check to see if resource provider feature is registered and then register\r\n        if (Get-AzProviderFeature -FeatureName \'BulkRegistration\' -ProviderNamespace \'Microsoft.SqlVirtualMachine\' | Where-Object RegistrationState -eq \"NotRegistered\") {\r\n            Write-Host \"Registering SQL VM provider feature for $subName with ID $subId\"\r\n            Register-AzProviderFeature -FeatureName BulkRegistration -ProviderNamespace Microsoft.SqlVirtualMachine -ErrorAction Stop | Out-Null\r\n        }\r\n\r\n        else { Write-Host \"Microsoft.SqlVirtualMachine Bulkregistration feature already registered for $subName\" }\r\n\r\n    }\r\n    Catch {\r\n        $message = $_.Exception.Message\r\n        Write-Error \"We failed to complete the resource registration for $subName because of the following reason: $message\"\r\n\r\n    }\r\n\r\n} -ThrottleLimit 10"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Web/serverfarms",
+                            "apiVersion": "2019-08-01",
+                            "name": "[variables('hostingPlanName')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "name": "[variables('hostingPlanName')]"
+                            },
+                            "sku": {
+                                "name": "Y1",
+                                "tier": "Dynamic",
+                                "size": "Y1",
+                                "family": "Y",
+                                "capacity": 0
+                            }
+                        },
+                        {
+                            "apiVersion": "2019-06-01",
+                            "type": "Microsoft.Storage/storageAccounts",
+                            "name": "[variables('storageAccountName')]",
+                            "location": "[variables('location')]",
+                            "sku": {
+                                "name": "Standard_LRS"
+                            }
+                        },
+                        {
+                            "apiVersion": "2018-05-01-preview",
+                            "name": "[variables('functionAppName')]",
+                            "type": "Microsoft.Insights/components",
+                            "location": "[variables('insightsLocation')[environment().name]]",
+                            "tags": {
+                                "[concat('hidden-link:', resourceId('Microsoft.Web/sites/', variables('functionAppName')))]": "Resource"
+                            },
+                            "properties": {
+                                "ApplicationId": "[variables('functionAppName')]"
+                            }
+                        }
+                    ],
+                    "outputs": {
+                        "principalId": {
+                            "type": "string",
+                            "value": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2019-08-01', 'Full').identity.principalId]"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "functionIdentity": {
+            "type": "string",
+            "value": "[reference('functionDeploy').outputs.principalId.value]"
+        }
+    }
+}

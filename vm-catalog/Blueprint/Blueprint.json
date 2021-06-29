@@ -1,0 +1,49 @@
+{
+    "properties": {
+      "displayName": "New Project Blueprint",
+      "description": "Deploys resource group with tagging and role assignment.",
+      "targetScope": "subscription",
+      "parameters": {
+        "adminUserName":{
+          "type":"string"
+        },
+        "sshKey":{
+          "type": "string"
+        },
+        "uamiResourceID": {
+          "type":"string"
+        },
+        "Environment": {
+          "type": "string",
+          "metadata": {
+            "displayName": "Prod, Dev"
+          },
+          "allowedValues": [
+            "prd",
+            "dev"
+          ],
+          "defaultValue": "prd"
+        },
+        "Region": {
+          "type": "string",
+          "allowedValues": [ "EastUS", "WestUS" ],
+          "defaultValue": "EastUS"
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues":[ "Small", "Medium", "Large"],
+            "defaultValue": "Small"
+        }
+      },
+      "resourceGroups": {
+        "VirtualMachine-RG": {
+          "name": "rg-vm",
+          "location": "eastus",
+          "metadata": {
+            "displayName": "VM Resource Group"
+          },
+          "dependsOn": []
+        }
+      }
+    }
+  }

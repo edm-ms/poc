@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mgtGroup": {
+        "type": "string",
+        "defaultValue": "mgtgroupId",
+        "metadata": {
+          "description": "Management group where identity is scoped."
+        }
+      },
+      "subscriptionId": {
+          "type": "string"
+      },
+      "location": {
+          "type": "string",
+          "defaultValue": "eastus"
+      },
+      "resourceGroupName": {
+          "type": "string",
+          "defaultValue": "rg-sqlrpfunction"
+      }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+
+        {
+            "name": "createRole",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-10-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/sql-rp-role.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "mgtGroup": {
+                        "value": "[parameters('mgtGroup')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "createFunction",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-10-01",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('subscriptionId')]",
+            "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createRole')]"],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/edm-ms/poc/main/register-sql-rp/azure-function.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "resourceGroupName": {
+                        "value": "[parameters('resourceGroupName')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'createFunction')]"],
+            "apiVersion": "2020-03-01-preview",
+            "name": "[guid(uniqueString(parameters('subscriptionId'), parameters('mgtGroup')))]",
+            "properties": {
+                "roleDefinitionId": "[concat('/providers/Microsoft.Authorization/roleDefinitions/', reference('createRole').outputs.roleID.value)]",
+                "principalId": "[reference('createFunction').outputs.functionIdentity.value]",
+                "scope": "[concat('providers/Microsoft.Management/managementGroups/', parameters('mgtGroup'))]"
+            }
+    }    
+
+    ],
+    "outputs": {}
+}

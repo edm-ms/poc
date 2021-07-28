@@ -276,8 +276,24 @@
                   ],
                   "appSettings": [
                     {
+                      "name": "SITE_COMPANY_NAME",
+                      "value": "Company Name"
+                    },
+                    {
                       "name": "SITE_TITLE",
                       "value": "[parameters('siteTitle')]"
+                    },
+                    {
+                      "name": "SITE_ICON",
+                      "value": "https://picsum.photos/200"
+                    },
+                    {
+                      "name": "SITE_LOGO",
+                      "value": "https://picsum.photos/200"
+                    },
+                    {
+                      "name": "SITE_COPYRIGHT",
+                      "value": "&copy; 2021 Company Name, Incorporated. All Rights Reserved."
                     },
                     {
                       "name": "WEBSITE_RUN_FROM_PACKAGE",
@@ -328,7 +344,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.3.1.62928",
-      "templateHash": "14564518781517016177"
+      "templateHash": "4614055717679216166"
     }
   }
 }

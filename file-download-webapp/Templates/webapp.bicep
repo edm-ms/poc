@@ -23,8 +23,24 @@ resource web 'Microsoft.Web/sites@2021-01-01' = {
    ]
    appSettings: [
     {
+      name: 'SITE_COMPANY_NAME'
+      value: 'Company Name'
+    }
+    {
       name: 'SITE_TITLE'
       value: siteTitle
+    }
+    {
+      name: 'SITE_ICON'
+      value: 'https://picsum.photos/200'
+    }
+    {
+      name: 'SITE_LOGO'
+      value: 'https://picsum.photos/200'
+    }
+    {
+      name: 'SITE_COPYRIGHT'
+      value: '&copy; 2021 Company Name, Incorporated. All Rights Reserved.'
     }
     {
       name: 'WEBSITE_RUN_FROM_PACKAGE'

@@ -1,71 +1,119 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
-
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+﻿@font-face {
+    font-family: Roboto-Bold;
+    src: url(/fonts/roboto-bold-webfont.woff2) format("woff2"),url(/fonts/roboto-bold-webfont.woff) format("woff")
 }
 
-/* Provide sufficient contrast against white background */
-a {
-  color: #0366d6;
+@font-face {
+    font-family: Roboto-Medium;
+    src: url(/fonts/roboto-medium-webfont.woff2) format("woff2"),url(/fonts/roboto-medium-webfont.woff) format("woff")
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+@font-face {
+    font-family: Roboto-Regular;
+    src: url(/fonts/roboto-regular-webfont.woff2) format("woff2"),url(/fonts/roboto-regular-webfont.woff) format("woff")
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+@font-face {
+    font-family: Roboto-Light;
+    src: url(/fonts/roboto-light-webfont.woff2) format("woff2"),url(/fonts/roboto-light-webfont.woff) format("woff")
 }
 
-/* Sticky footer styles
--------------------------------------------------- */
+@font-face {
+    font-family: Gotham-Bold;
+    src: url(/fonts/gotham-bold-webfont.woff2) format("woff2"),url(/fonts/gotham-bold-webfont.woff) format("woff")
+}
+
+@font-face {
+    font-family: Gotham-Book;
+    src: url(/fonts/gotham-book-webfont.woff2) format("woff2"),url(/fonts/gotham-book-webfont.woff) format("woff")
+}
+
+@font-face {
+    font-family: Gotham-Medium;
+    src: url(/fonts/gotham-medium-webfont.woff2) format("woff2"),url(/fonts/gotham-medium-webfont.woff) format("woff")
+}
+
+@font-face {
+    font-family: Gotham-Light;
+    src: url(/fonts/gotham-light-webfont.woff2) format("woff2"),url(/fonts/gotham-light-webfont.woff) format("woff")
+}
+
+@font-face {
+    font-family: Gotham-Thin;
+    src: url(/fonts/gotham-thin-webfont.woff2) format("woff2"),url(/dist/fonts/gotham-thin-webfont.woff) format("woff")
+}
+
 html {
-  font-size: 14px;
-}
-@media (min-width: 768px) {
-  html {
+    color: #000;
     font-size: 16px;
-  }
+    line-height: 1.5;
+    font-family: Roboto-Regular, sans-serif;
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+.header {
+    background-color: rgba(245,246,248,.88);
+    -webkit-box-shadow: 0 3px 10px 0 rgba(0,0,1,.2);
+    box-shadow: 0 3px 10px 0 rgba(0,0,1,.2);
+    margin-bottom: 2rem;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
-}
+    .header .nav-item,
+    .header .navbar-text {
+        font-family: Gotham-Book,sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        padding: 8px;
+        font-size: 14px;
+    }
 
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-  position: relative;
-  min-height: 100%;
-}
+    .header .navbar-text {
+        font-weight: bolder;
+    }
 
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
-}
+    .header .nav-item a {
+        color: #2a2b36;
+    }
+
+    .header .nav-item:hover {
+    }
+
+        .header .nav-item:hover a {
+            color: #000;
+            font-weight: bolder;
+        }
+
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px; /* Vertically center the text there */
+    text-align: center;
+    padding: 21px 0 29px;
+    font-size: 12px
+}
+
+.alert {
+    margin-bottom: 2rem;
+}
+
+.alert-danger {
+    line-height: 1.5;
+    color: #8d1b58;
+    border-radius: 4px;
+    border: 1px solid #f185ce;
+    background-color: #fdedf8;
+    padding: 14px 20px;
+}
+
+.table a {
+    color: #0072b7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.table a:hover {
+    color: #00b0ff;
+}
+
+.table th {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: Roboto-Medium,sans-serif;
+    font-weight: normal;
 }

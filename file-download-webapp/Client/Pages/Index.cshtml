@@ -4,30 +4,31 @@
     ViewData["Title"] = "Home";
 }
 
-<hr>
-<h6>Download links are valid for @Environment.GetEnvironmentVariable("AZURE_STORAGE_SAS_TOKEN_DURATION") minutes from @Model.sasStartTime UTC.</h6>
-<br>
-<br>
+<div class="alert alert-danger" role="alert">
+  Download links are valid for @Environment.GetEnvironmentVariable("AZURE_STORAGE_SAS_TOKEN_DURATION") minutes from @Model.sasStartTime UTC.
+</div>
 
 <table class="table">
     <thead>
         <tr>
-            <td>File Name</td>
-            <td>File Size (MB)</td>
-            <td>File Size (GB)</td>
-            <td>File Description</td>
-            <th style="width:1px;"></th>
-            <th style="width:1px;"></th>
+            <th>Name</th>
+            <th style="width:100px;" class="text-center">Size (MB)</th>
+            <th style="width:100px;" class="text-center">Size (GB)</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var file in this.Model.Files)
         {
             <tr>
-                <td><a href="@file.Uri.ToString()">@file.BlobItem.Name</a></td>
-                <td>@file.SizeInMB</td>
-                <td>@file.SizeInGB</td>
-                <td>@file.BlobDescription</td>
+                <td>
+                    <a href="@file.Uri.ToString()">@file.BlobItem.Name</a>
+                    @if (!string.IsNullOrWhiteSpace(file.BlobDescription))
+                    {
+                        <small class="d-block text-muted">@file.BlobDescription</small>
+                    }
+                </td>
+                <td class="text-center">@file.SizeInMB</td>
+                <td class="text-center">@file.SizeInGB</td>
             </tr>
         }
     </tbody>

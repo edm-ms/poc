@@ -1,24 +1,17 @@
 # Azure Web App Storage Download Front-End
 
 ## Contents
+
 - [Intro](#intro)
 - [Configure](#Configure)
 - [Usage](#Usage)
 - [Variables](#variables)
-
----
-
-### Intro
-
---- 
+## Intro
 
 This is a simple Azure Web App built on .NET Core that will front-end Azure Storage to allow files to be downloaded. AAD authentication is enabled after the deployment requiring users to authenticate before gaining access. Once authenticated users are presented a list of files with auto-generated and expiring URL links allowing "read" access. Most settings are configurable via "Configuration" settings in the Web App.
 
 Special thanks to [Matt Ruma](https://github.com/mattruma) who built the initial [application](https://github.com/mattruma/MJR133).
-   
-
-### Configure
----
+## Configure
 
 Using the "Deploy to Azure" button below will deploy the following resources into your environment:
  
@@ -73,15 +66,18 @@ If a file has the metadata listed above it will be displayed on the page.
 
 > <img src="./Images/page-view.png" width="700">
 
-### Variables
----
+### Variables/App Settings
 
 The following variables can be configured from the Azure Portal.
 
 Variable | Description | Default Value 
 -------- |------------ | ------------- 
+SITE_COMPANY_NAME | Name of the company to be displayed in the Browser title | Company Name 
 SITE_TITLE | Title of site displayed on webpage | Corporate File Download 
-WEBSITE_RUN_FROM_PACKAGE | URL of zip file for App Service to run | https://github.com/edm-ms/poc/raw/main/file-download-webapp/site.zip
+SITE_ICON | The favicon | <https://picsum.photos/200>
+SITE_LOGO | Then brand image | <https://picsum.photos/200>
+SITE_COPYRIGHT | Title of site displayed on webpage | &copy; 2021 Company Name, Incorporated. All Rights Reserved.
+WEBSITE_RUN_FROM_PACKAGE | URL of zip file for App Service to run | <https://github.com/edm-ms/poc/raw/main/file-download-webapp/site.zip>
 AZURE_STORAGE_CONNECTION_STRING | Connection string for Azure Storage account |  generated at deployment
 AZURE_STORAGE_SAS_TOKEN_DURATION | Duration download link is valid in minutes | 15
 AZURE_STORAGE_CONTAINER | Storage container where files are located | iso

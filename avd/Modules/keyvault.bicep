@@ -46,7 +46,13 @@ param secretName string
 @description('Value of the secret to store in Key Vault')
 param secretValue string
 
-
+@allowed([
+  'Group'
+  'ServicePrincipal'
+  'User'
+])
+@description('Type of security principal for access to Key Vault')
+param principalType string
 
 var roleIdMapping = {
   'Key Vault Administrator': '00482a5a-887f-4fb3-b363-3b7fe8e74483'
@@ -68,7 +74,6 @@ resource kv 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
     enabledForTemplateDeployment: enabledForTemplateDeployment
     enableRbacAuthorization: true
     tenantId: tenantId
-
     sku: {
       name: skuName
       family: 'A'
@@ -94,7 +99,7 @@ resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-pr
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleIdMapping[roleName])
     principalId: objectId
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 

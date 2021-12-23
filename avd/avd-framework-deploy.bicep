@@ -87,6 +87,7 @@ module kv 'Modules/keyvault.bicep' = {
     secretValue: domainJoinPassword
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
+    principalType: 'User'
   }
 }
 

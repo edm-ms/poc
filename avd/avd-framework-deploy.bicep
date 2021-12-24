@@ -19,11 +19,18 @@ param keyVaultName string                =  'kv-prod-eus-avdsecrets'
 param objectId string
 
 @description('UPN for domain joining AVD systems')
-param domainJoinUsername string         = 'avddomainjoin@contoso.com'
+param domainJoinAccount string         = 'avddomainjoin@contoso.com'
 
 @secure()
 @description('Password for domain joining AVD systems')
 param domainJoinPassword string
+
+@description('Local administrator username for AVD systems')
+param localAdminAccount string         = 'avdadmin'
+
+@secure()
+@description('Password for domain joining AVD systems')
+param localAdminPassword string
 
 @description('Do not modify, used to set unique value for resource deployment')
 param time string = utcNow()
@@ -31,7 +38,11 @@ param time string = utcNow()
 // ----------------------------------------
 // Variable declaration
 
-var domainJoinSecretName = 'domainjoinpassword'
+var domainJoinUsername = 'domainjoinusername'
+var domainJoinUserSecret = 'domainjoinpassword'
+var localAdminUsername = 'localadminusername'
+var localAdminUserSecret = 'avdlocaladminpassword'
+
 var hostPoolSpecData = {
   name: 'HostPool'
   displayName: 'AVD Host Pool'
@@ -83,11 +94,49 @@ module kv 'Modules/keyvault.bicep' = {
   params: {
     keyVaultName: keyVaultName
     objectId: objectId
-    secretName: domainJoinSecretName
-    secretValue: domainJoinPassword
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
     principalType: 'User'
+  }
+}
+
+module domainJoinName 'Modules/keyVaultSecret.bicep' = {
+  scope: kvRg
+  name: '${domainJoinUsername}-${time}'
+  params: {
+    secretName: domainJoinUsername
+    secretValue: domainJoinAccount
+    keyVaultName: kv.outputs.keyVaultName
+  }
+}
+
+module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
+  scope: kvRg
+  name: 'sec${domainJoinUsername}-${time}'
+  params: {
+    secretName: domainJoinUserSecret
+    secretValue: domainJoinPassword
+    keyVaultName: kv.outputs.keyVaultName
+  }
+}
+
+module localAdminName 'Modules/keyVaultSecret.bicep' = {
+  scope: kvRg
+  name: '${localAdminUsername}-${time}'
+  params: {
+    secretName: localAdminUsername
+    secretValue: localAdminAccount
+    keyVaultName: kv.outputs.keyVaultName
+  }
+}
+
+module localAdminPass 'Modules/keyVaultSecret.bicep' = {
+  scope: kvRg
+  name: 'sec${localAdminUsername}-${time}'
+  params: {
+    secretName: localAdminUserSecret
+    secretValue: localAdminPassword
+    keyVaultName: kv.outputs.keyVaultName
   }
 }
 

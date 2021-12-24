@@ -39,13 +39,6 @@ param objectId string
 ])
 param roleName string = 'Key Vault Administrator'
 
-@description('Name of the secret to store in Key Vault')
-param secretName string
-
-@secure()
-@description('Value of the secret to store in Key Vault')
-param secretValue string
-
 @allowed([
   'Group'
   'ServicePrincipal'
@@ -85,14 +78,6 @@ resource kv 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
   }
 }
 
-resource secret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  parent: kv
-  name: secretName
-  properties: {
-    value: secretValue
-  }
-}
-
 resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid(roleIdMapping[roleName],objectId,kv.id)
   scope: kv
@@ -104,3 +89,4 @@ resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-pr
 }
 
 output keyVaultResourceId string = kv.id
+output keyVaultName string = kv.name

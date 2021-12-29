@@ -19,18 +19,10 @@ param domainUserName string
 param ouPath string
 param installNVidiaGPUDriver bool = false
 
-param keyVaultName string
-param keyVaultRg string
-
 @secure()
 param localAdminPassword string
 @secure()
 param domainJoinPassword string
-
-resource keyvault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: keyVaultName
-  scope: resourceGroup(keyVaultRg)
-}
 
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents
 resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-01-14-preview' existing = {

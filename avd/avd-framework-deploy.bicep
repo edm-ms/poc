@@ -38,9 +38,7 @@ param time string = utcNow()
 // ----------------------------------------
 // Variable declaration
 
-var domainJoinUsername = 'domainjoinusername'
 var domainJoinUserSecret = 'domainjoinpassword'
-var localAdminUsername = 'localadminusername'
 var localAdminUserSecret = 'avdlocaladminpassword'
 
 var hostPoolSpecData = {
@@ -100,19 +98,9 @@ module kv 'Modules/keyvault.bicep' = {
   }
 }
 
-module domainJoinName 'Modules/keyVaultSecret.bicep' = {
-  scope: kvRg
-  name: '${domainJoinUsername}-${time}'
-  params: {
-    secretName: domainJoinUsername
-    secretValue: domainJoinAccount
-    keyVaultName: kv.outputs.keyVaultName
-  }
-}
-
 module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
   scope: kvRg
-  name: 'sec${domainJoinUsername}-${time}'
+  name: 'domainSec-${time}'
   params: {
     secretName: domainJoinUserSecret
     secretValue: domainJoinPassword
@@ -120,19 +108,9 @@ module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
   }
 }
 
-module localAdminName 'Modules/keyVaultSecret.bicep' = {
-  scope: kvRg
-  name: '${localAdminUsername}-${time}'
-  params: {
-    secretName: localAdminUsername
-    secretValue: localAdminAccount
-    keyVaultName: kv.outputs.keyVaultName
-  }
-}
-
 module localAdminPass 'Modules/keyVaultSecret.bicep' = {
   scope: kvRg
-  name: 'sec${localAdminUsername}-${time}'
+  name: 'adminSec-${time}'
   params: {
     secretName: localAdminUserSecret
     secretValue: localAdminPassword

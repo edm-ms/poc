@@ -1,19 +1,13 @@
 targetScope                             = 'subscription'
 
-@description('Name of resource group to create Key Vault')
-param keyVaultResourceGroup string      = 'rg-prod-eus-avdkeyvault'
-
 @description('Name of resource group to create Template Spec')
 param templateResourceGroup string      = 'rg-prod-eus-avdtemplates'
 
-@description('Name of resource group to create Host Pool')
-param hostPoolResourceGroup string      = 'rg-prod-eus-avdhostpools'
-
-@description('Name of resource group to create Workspace')
-param workspaceResourceGroup string      = 'rg-prod-eus-avdworkspaces'
+@description('Name of resource group to hold HostPools, Application Groups, and Workspaces')
+param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 
 @description('Name of Key Vault used for AVD deployment secrets')
-param keyVaultName string                =  'kv-prod-eus-avdsecrets'
+param keyVaultName string                =  'kv-prod-eus-avd'
 
 @description('AAD object ID of security principal to grant Key Vault access')
 param objectId string
@@ -32,6 +26,9 @@ param localAdminAccount string         = 'avdadmin'
 @description('Password for domain joining AVD systems')
 param localAdminPassword string
 
+@description('Create custom Start VM on Connect Role')
+param createCustomRole bool = true
+
 @description('Do not modify, used to set unique value for resource deployment')
 param time string = utcNow()
 
@@ -45,49 +42,51 @@ var hostPoolSpecData = {
   name: 'HostPool'
   displayName: 'AVD Host Pool'
   version: '1.0'
-  template: json(loadTextContent('./Modules/ts-hostpool.json'))
+  template: json(loadTextContent('./Parameters/ts-hostpool.json'))
 }
 var appGroupSpecData = {
   name: 'AppGroup'
   displayName: 'AVD Application Group'
   version: '1.0'
-  template: json(loadTextContent('./Modules/ts-applicationgroup.json'))
+  template: json(loadTextContent('./Parameters/ts-applicationgroup.json'))
 }
 var workspaceSpecData = {
   name: 'Workspace'
   displayName: 'AVD Workspace'
   version: '1.0'
-  template: json(loadTextContent('./Modules/ts-workspace.json'))
+  template: json(loadTextContent('./Parameters/ts-workspace.json'))
+}
+
+var sessionHostSpecData = {
+  name: 'SessionHost'
+  displayName: 'AVD SessionHost'
+  version: '1.0'
+  template: json(loadTextContent('./Parameters/ts-sessionhost.json'))
 }
 
 // ----------------------------------------
 // Resource Group Deployments
 
-resource kvRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: keyVaultResourceGroup
-  location: deployment().location
-}
+
 
 resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: templateResourceGroup
   location: deployment().location
 }
 
-resource hpRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: hostPoolResourceGroup
-  location: deployment().location
-}
-
-resource wsRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: workspaceResourceGroup
+resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: avdResourceGroup
   location: deployment().location
 }
 
 // ----------------------------------------
 // Resource Deployments
 
+module startVmRole 'Modules/start-vm-role.bicep' = if (createCustomRole) {
+  name: 'startVmRole-${time}'
+}
 module kv 'Modules/keyvault.bicep' = {
-  scope: kvRg
+  scope: avdRg
   name: 'avdkv-${time}'
   params: {
     keyVaultName: keyVaultName
@@ -99,7 +98,7 @@ module kv 'Modules/keyvault.bicep' = {
 }
 
 module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
-  scope: kvRg
+  scope: avdRg
   name: 'domainSec-${time}'
   params: {
     secretName: domainJoinUserSecret
@@ -109,7 +108,7 @@ module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
 }
 
 module localAdminPass 'Modules/keyVaultSecret.bicep' = {
-  scope: kvRg
+  scope: avdRg
   name: 'adminSec-${time}'
   params: {
     secretName: localAdminUserSecret
@@ -145,5 +144,15 @@ module wsTs 'Modules/templateSpec.bicep' = {
     armTemplate: workspaceSpecData.template
     templateSpecDisplayName: workspaceSpecData.displayName
     templateSpecName: workspaceSpecData.name
+  }
+}
+
+module shTs 'Modules/templateSpec.bicep' = {
+  scope: tsRg
+  name: 'shTs-${time}'
+  params: {
+    armTemplate: sessionHostSpecData.template
+    templateSpecDisplayName: sessionHostSpecData.displayName
+    templateSpecName: sessionHostSpecData.name
   }
 }

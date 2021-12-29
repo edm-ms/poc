@@ -1,4 +1,5 @@
-param name string
+param vmName string
+param hostPoolId string
 param tags object = {}
 param location string = resourceGroup().location
 param aadJoin bool = false
@@ -24,13 +25,17 @@ param localAdminPassword string
 @secure()
 param domainJoinPassword string
 
+var hostPoolRg = split(hostPoolId, '/')[4]
+var hostPoolName = split(hostPoolId, '/')[8]
+
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents
 resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-01-14-preview' existing = {
-  name: 'hp-${name}'
+  name: hostPoolName
+  scope: resourceGroup(hostPoolRg)
 }
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [for i in range(0, count): {
-  name: 'nic-${take(name, 10)}-${i + 1}'
+  name: 'nic-${take(vmName, 10)}-${i + 1}'
   location: location
   tags: tags
   properties: {
@@ -49,7 +54,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [fo
 }]
 
 resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in range(0, count): {
-  name: 'vm${take(name, 10)}-${i + 1}'
+  name: 'vm${take(vmName, 10)}-${i + 1}'
   location: location
   tags: tags
   identity: {
@@ -57,7 +62,7 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in 
   }
   properties: {
     osProfile: {
-      computerName: 'vm${take(name, 10)}-${i + 1}'
+      computerName: 'vm${take(vmName, 10)}-${i + 1}'
       adminUsername: localAdminName
       adminPassword: localAdminPassword
     }

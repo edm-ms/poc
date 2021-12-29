@@ -1,4 +1,5 @@
 @description('Specifies the name of the key vault.')
+@maxLength(16)
 param keyVaultName string
 
 @description('Specifies the Azure location where the key vault should be created.')
@@ -58,8 +59,11 @@ var roleIdMapping = {
   'Key Vault Secrets User': '4633458b-17de-408a-b874-0445c86b69e6'
 }
 
+var kvUniqueLength = 24 - length(keyVaultName)
+var kvUniqueName = '${keyVaultName}${take(uniqueString(keyVaultName),kvUniqueLength)}'
+
 resource kv 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
-  name: keyVaultName
+  name: kvUniqueName
   location: location
   properties: {
     enabledForDeployment: enabledForDeployment
@@ -72,7 +76,7 @@ resource kv 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
       family: 'A'
     }
     networkAcls: {
-      defaultAction: 'Allow'
+      defaultAction: 'Deny'
       bypass: 'AzureServices'
     }
   }

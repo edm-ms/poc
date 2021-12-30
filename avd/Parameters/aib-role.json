@@ -1,0 +1,29 @@
+{
+    "Name": "Azure Image Builder (Custom)",
+    "IsCustom": true,
+    "Description": "Azure Image Builder (Custom)",
+    "Actions": [
+      "Microsoft.Compute/images/write",
+      "Microsoft.Compute/images/read",
+      "Microsoft.Compute/images/delete",
+      "Microsoft.Compute/galleries/read",
+      "Microsoft.Compute/galleries/images/read",
+      "Microsoft.Compute/galleries/images/versions/read",
+      "Microsoft.Compute/galleries/images/versions/write",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/write",
+      "Microsoft.ContainerInstance/containerGroups/read",
+      "Microsoft.ContainerInstance/containerGroups/write",
+      "Microsoft.ContainerInstance/containerGroups/start/action",
+      "Microsoft.Resources/deployments/read",
+      "Microsoft.Resources/deploymentScripts/read",
+      "Microsoft.Resources/deploymentScripts/write",
+      "Microsoft.VirtualMachineImages/imageTemplates/run/action"      
+    ],
+    "NotActions": [],
+    "DataActions": [],
+    "NotDataActions": [],
+    "AssignableScopes": [
+      
+    ]
+  }

@@ -26,8 +26,14 @@ param localAdminAccount string         = 'avdadmin'
 @description('Password for domain joining AVD systems')
 param localAdminPassword string
 
+@description('Name for managed identity used for Azure Image Builder')
+param managedIdentityName string       =  'mi-prod-global-imagebuilder'
+
 @description('Create custom Start VM on Connect Role')
-param createCustomRole bool = true
+param createVmRole bool = true
+
+@description('Create custom Azure Image Builder Role')
+param createAibRole bool = true
 
 @description('Do not modify, used to set unique value for resource deployment')
 param time string = utcNow()
@@ -37,6 +43,11 @@ param time string = utcNow()
 
 var domainJoinUserSecret = 'domainjoinpassword'
 var localAdminUserSecret = 'avdlocaladminpassword'
+
+var vdiOptimize = loadTextContent('./Parameters/21h2-vdi-optimizer.ps1')
+var securityBaseline = loadTextContent('./Parameters/azuresecuritybaseline.ps1')
+var startVmRoleDef = json(loadTextContent('./Parameters/start-vm-role.json'))
+var aibRoleDef = json(loadTextContent('./Parameters/aib-role.json'))
 
 var hostPoolSpecData = {
   name: 'HostPool'
@@ -67,8 +78,6 @@ var sessionHostSpecData = {
 // ----------------------------------------
 // Resource Group Deployments
 
-
-
 resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: templateResourceGroup
   location: deployment().location
@@ -82,8 +91,18 @@ resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 // ----------------------------------------
 // Resource Deployments
 
-module startVmRole 'Modules/start-vm-role.bicep' = if (createCustomRole) {
+module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   name: 'startVmRole-${time}'
+  params: {
+    roleDefinition: startVmRoleDef
+  }
+}
+
+module aibRole 'Modules/custom-role.bicep' = if (createAibRole) {
+  name: 'aibRole-${time}'
+  params: {
+    roleDefinition: aibRoleDef
+  }
 }
 module kv 'Modules/keyvault.bicep' = {
   scope: avdRg
@@ -154,5 +173,22 @@ module shTs 'Modules/templateSpec.bicep' = {
     armTemplate: sessionHostSpecData.template
     templateSpecDisplayName: sessionHostSpecData.displayName
     templateSpecName: sessionHostSpecData.name
+  }
+}
+
+module imageBuilderIdentity 'Modules/managedidentity.bicep' = {
+  scope: avdRg
+  name: 'identity-${time}'
+  params: {
+    identityName: managedIdentityName
+  }
+}
+
+module assignAibRole 'Modules/role-assign.bicep' = {
+  name: 'assignAib-${time}'
+  scope: avdRg
+  params: {
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
+    roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
   }
 }

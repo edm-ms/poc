@@ -1,3 +1,4 @@
+@maxLength(10)
 param vmName string
 param hostPoolId string
 param tags object = {}
@@ -35,7 +36,7 @@ resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-01-14-pre
 }
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [for i in range(0, count): {
-  name: 'nic-${take(vmName, 10)}-${i + 1}'
+  name: 'nic-${vmName}-${i + 1}'
   location: location
   tags: tags
   properties: {
@@ -54,7 +55,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [fo
 }]
 
 resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in range(0, count): {
-  name: 'vm${take(vmName, 10)}-${i + 1}'
+  name: '${vmName}-${i + 1}'
   location: location
   tags: tags
   identity: {
@@ -62,7 +63,7 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in 
   }
   properties: {
     osProfile: {
-      computerName: 'vm${take(vmName, 10)}-${i + 1}'
+      computerName: '${vmName}-${i + 1}'
       adminUsername: localAdminName
       adminPassword: localAdminPassword
     }

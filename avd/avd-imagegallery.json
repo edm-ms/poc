@@ -1,0 +1,351 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.1124.51302",
+      "templateHash": "5686401530601303796"
+    }
+  },
+  "parameters": {
+    "avdResourceGroup": {
+      "type": "string",
+      "defaultValue": "rg-prod-eus-avdresources",
+      "metadata": {
+        "description": "Name of resource group to hold HostPools, Application Groups, and Workspaces"
+      }
+    },
+    "managedIdentityName": {
+      "type": "string",
+      "defaultValue": "uai-prod-global-imagebuilder",
+      "metadata": {
+        "description": "Name for managed identity used for Azure Image Builder"
+      }
+    },
+    "imageRegionReplicas": {
+      "type": "array",
+      "defaultValue": [
+        "EastUs"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "defaultValue": "[utcNow()]",
+      "metadata": {
+        "description": "Do not modify, used to set unique value for resource deployment"
+      }
+    }
+  },
+  "variables": {
+    "vdiOptimize": "<#####################################################################################################################################\r\n\r\n    This Sample Code is provided for the purpose of illustration only and is not intended to be used in a production environment.  \r\n    THIS SAMPLE CODE AND ANY RELATED INFORMATION ARE PROVIDED \"AS IS\" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, \r\n    INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.  We grant \r\n    You a nonexclusive, royalty-free right to use and modify the Sample Code and to reproduce and distribute the object code form \r\n    of the Sample Code, provided that You agree: (i) to not use Our name, logo, or trademarks to market Your software product in \r\n    which the Sample Code is embedded; (ii) to include a valid copyright notice on Your software product in which the Sample Code \r\n    is embedded; and (iii) to indemnify, hold harmless, and defend Us and Our suppliers from and against any claims or lawsuits, \r\n    including attorneys’ fees, that arise or result from the use or distribution of the Sample Code.\r\n\r\n    Microsoft provides programming examples for illustration only, without warranty either expressed or\r\n    implied, including, but not limited to, the implied warranties of merchantability and/or fitness \r\n    for a particular purpose. \r\n \r\n    This sample assumes that you are familiar with the programming language being demonstrated and the \r\n    tools used to create and debug procedures. Microsoft support professionals can help explain the \r\n    functionality of a particular procedure, but they will not modify these examples to provide added \r\n    functionality or construct procedures to meet your specific needs. if you have limited programming \r\n    experience, you may want to contact a Microsoft Certified Partner or the Microsoft fee-based consulting \r\n    line at (800) 936-5200. \r\n\r\n    For more information about Microsoft Certified Partners, please visit the following Microsoft Web site:\r\n    https://partner.microsoft.com/global/30000104 \r\n\r\n######################################################################################################################################>\r\n\r\n[Cmdletbinding(DefaultParameterSetName=\"Default\")]\r\nParam (\r\n    # Parameter help description\r\n    [ArgumentCompleter( { Get-ChildItem $PSScriptRoot -Directory | Where-Object { $_.Name -ne 'LGPO' } | Select-Object -ExpandProperty Name } )]\r\n    [System.String]$WindowsVersion = (Get-ItemProperty \"HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\\").ReleaseId,\r\n\r\n    [ValidateSet('All','WindowsMediaPlayer','AppxPackages','ScheduledTasks','DefaultUserSettings','Autologgers','Services','NetworkOptimizations','LGPO','DiskCleanup')] \r\n    [String[]]\r\n    $Optimizations = \"All\",\r\n\r\n\r\n    [Switch]$Restart,\r\n    [Switch]$AcceptEULA\r\n)\r\n \r\n#Requires -RunAsAdministrator\r\n#Requires -PSEdition Desktop\r\n\r\n<#\r\n- TITLE:          Microsoft Windows 10 Virtual Desktop Optimization Script\r\n- AUTHORED BY:    Robert M. Smith and Tim Muessig (Microsoft)\r\n- AUTHORED DATE:  11/19/2019\r\n- CONTRIBUTORS:   Travis Roberts (2020), Jason Parker (2020)\r\n- LAST UPDATED:   10/14/2021\r\n- PURPOSE:        To automatically apply settings referenced in the following white papers:\r\n                  https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/rds_vdi-recommendations-1909\r\n                  \r\n- Important:      Every setting in this script and input files are possible recommendations only,\r\n                  and NOT requirements in any way. Please evaluate every setting for applicability\r\n                  to your specific environment. These scripts have been tested on plain Hyper-V\r\n                  VMs. Please test thoroughly in your environment before implementation\r\n\r\n- DEPENDENCIES    1. On the target machine, run PowerShell elevated (as administrator)\r\n                  2. Within PowerShell, set exectuion policy to enable the running of scripts.\r\n                     Ex. Set-ExecutionPolicy -ExecutionPolicy RemoteSigned\r\n                  3. LGPO.EXE (available at https://www.microsoft.com/en-us/download/details.aspx?id=55319)\r\n                  4. LGPO database files available in the respective folders (ex. \\1909, or \\2004)\r\n                  5. This PowerShell script\r\n                  6. The text input files containing all the apps, services, traces, etc. that you...\r\n                     may be interested in disabling. Please review these input files to customize...\r\n                     to your environment/requirements\r\n\r\n- REFERENCES:\r\nhttps://social.technet.microsoft.com/wiki/contents/articles/7703.powershell-running-executables.aspx\r\nhttps://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item?view=powershell-6\r\nhttps://blogs.technet.microsoft.com/secguide/2016/01/21/lgpo-exe-local-group-policy-object-utility-v1-0/\r\nhttps://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/set-service?view=powershell-6\r\nhttps://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item?view=powershell-6\r\nhttps://msdn.microsoft.com/en-us/library/cc422938.aspx\r\n#>\r\n\r\n<# Categories of cleanup items:\r\nThis script is dependent on the following:\r\nLGPO Settings folder, applied with the LGPO.exe Microsoft app\r\n\r\nThe UWP app input file contains the list of almost all the UWP application packages that can be removed with PowerShell interactively.  \r\nThe Store and a few others, such as Wallet, were left off intentionally.  Though it is possible to remove the Store app, \r\nit is nearly impossible to get it back.  Please review the configuration files and change the 'VDIState' to anything but 'disabled' to keep the item.\r\n#>\r\nBEGIN {\r\n    If  (19043 -lt (Get-ItemProperty \"HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\\").CurrentBuildNumber) {\r\n    $WindowsVersion = '21H2'   \r\n    }\r\n\r\n    $baseURI = \"https://raw.githubusercontent.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool/main/21H2/ConfigurationFiles\"\r\n    $fileList = @('AppxPackages.json','Autologgers.Json','DefaultUserSettings.json','LanManWorkstation.json','ScheduledTasks.json','Services.json')\r\n    $outputPath = \"C:\\temp\"\r\n\r\n    if ((Test-Path $outputPath) -ne $true) { New-Item -ItemType Directory -Path $outputPath }\r\n\r\n    foreach ($file in $fileList) {\r\n        Invoke-WebRequest \"$baseURI/$file\" -OutFile \"$outputPath\\$file\"\r\n    }\r\n\r\n    If (-not([System.Diagnostics.EventLog]::SourceExists(\"Virtual Desktop Optimization\")))\r\n    {\r\n        # All VDOT main function Event ID's [1-9]\r\n        $EventSources = @('VDOT', 'WindowsMediaPlayer', 'AppxPackages', 'ScheduledTasks', 'DefaultUserSettings', 'Autologgers', 'Services', 'NetworkOptimizations', 'LGPO', 'DiskCleanup')\r\n        New-EventLog -Source $EventSources -LogName 'Virtual Desktop Optimization'\r\n        Limit-EventLog -OverflowAction OverWriteAsNeeded -MaximumSize 64KB -LogName 'Virtual Desktop Optimization'\r\n        Write-EventLog -LogName 'Virtual Desktop Optimization' -Source 'VDOT' -EntryType Information -EventId 1 -Message \"Log Created\"\r\n    }\r\n    Write-EventLog -LogName 'Virtual Desktop Optimization' -Source 'VDOT' -EntryType Information -EventId 1 -Message \"Starting VDOT by $env:USERNAME with the following options:`n$($PSBoundParameters | Out-String)\" \r\n\r\n    $StartTime = Get-Date\r\n    $CurrentLocation = Get-Location\r\n    $WorkingLocation = (Join-Path $PSScriptRoot $WindowsVersion)\r\n\r\n    try\r\n    {\r\n        Push-Location (Join-Path $PSScriptRoot $WindowsVersion)-ErrorAction Stop\r\n    }\r\n    catch\r\n    {\r\n        $Message = \"Invalid Path $WorkingLocation - Exiting Script!\"\r\n        Write-EventLog -Message $Message -Source 'VDOT' -EventID 100 -EntryType Error -LogName 'Virtual Desktop Optimization'\r\n        Write-Warning $Message\r\n        Return\r\n    }\r\n}\r\nPROCESS {\r\n\r\n\r\n    Set-Location $outputPath\r\n\r\n    #region Disable, then remove, Windows Media Player including payload\r\n    If ($Optimizations -contains \"WindowsMediaPlayer\" -or $Optimizations -contains \"All\") {\r\n        try\r\n        {\r\n            Write-EventLog -EventId 10 -Message \"[VDI Optimize] Disable / Remove Windows Media Player\" -LogName 'Virtual Desktop Optimization' -Source 'WindowsMediaPlayer' -EntryType Information \r\n            Write-Host \"[VDI Optimize] Disable / Remove Windows Media Player\" -ForegroundColor Cyan\r\n            Disable-WindowsOptionalFeature -Online -FeatureName WindowsMediaPlayer -NoRestart | Out-Null\r\n            Get-WindowsPackage -Online -PackageName \"*Windows-mediaplayer*\" | ForEach-Object { \r\n                Write-EventLog -EventId 10 -Message \"Removing $($_.PackageName)\" -LogName 'Virtual Desktop Optimization' -Source 'WindowsMediaPlayer' -EntryType Information \r\n                Remove-WindowsPackage -PackageName $_.PackageName -Online -ErrorAction SilentlyContinue -NoRestart | Out-Null\r\n            }\r\n        }\r\n        catch \r\n        { \r\n            $msg = ($_ | Format-List | Out-String)\r\n            Write-EventLog -EventId 110 -Message \"Disabling / Removing Windows Media Player - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'WindowsMediaPlayer' -EntryType Error \r\n        }\r\n    }\r\n    #endregion\r\n\r\n    #region Begin Clean APPX Packages\r\n    If ($Optimizations -contains \"AppxPackages\" -or $Optimizations -contains \"All\")\r\n    {\r\n        $AppxConfigFilePath = \"$outputPath\\AppxPackages.json\"\r\n        If (Test-Path $AppxConfigFilePath)\r\n        {\r\n            Write-EventLog -EventId 20 -Message \"[VDI Optimize] Removing Appx Packages\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Information \r\n            Write-Host \"[VDI Optimize] Removing Appx Packages\" -ForegroundColor Cyan\r\n            $AppxPackage = (Get-Content $AppxConfigFilePath | ConvertFrom-Json).Where( { $_.VDIState -eq 'Disabled' })\r\n            If ($AppxPackage.Count -gt 0)\r\n            {\r\n                Foreach ($Item in $AppxPackage)\r\n                {\r\n                    try\r\n                    {                \r\n                        Write-EventLog -EventId 20 -Message \"Removing Provisioned Package $($Item.AppxPackage)\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Information \r\n                        Write-Verbose \"Removing Provisioned Package $($Item.AppxPackage)\"\r\n                        Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like (\"*{0}*\" -f $Item.AppxPackage) } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null\r\n                        \r\n                        Write-EventLog -EventId 20 -Message \"Attempting to remove [All Users] $($Item.AppxPackage) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Information \r\n                        Write-Verbose \"Attempting to remove [All Users] $($Item.AppxPackage) - $($Item.Description)\"\r\n                        Get-AppxPackage -AllUsers -Name (\"*{0}*\" -f $Item.AppxPackage) | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue \r\n                        \r\n                        Write-EventLog -EventId 20 -Message \"Attempting to remove $($Item.AppxPackage) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Information \r\n                        Write-Verbose \"Attempting to remove $($Item.AppxPackage) - $($Item.Description)\"\r\n                        Get-AppxPackage -Name (\"*{0}*\" -f $Item.AppxPackage) | Remove-AppxPackage -ErrorAction SilentlyContinue | Out-Null\r\n                    }\r\n                    catch \r\n                    {\r\n                        $msg = ($_ | Format-List | Out-String)\r\n                        Write-EventLog -EventId 120 -Message \"Failed to remove Appx Package $($Item.AppxPackage) - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Error \r\n                        Write-Warning \"Failed to remove Appx Package $($Item.AppxPackage) - $msg\"\r\n                    }\r\n                }\r\n            }\r\n            Else \r\n            {\r\n                Write-EventLog -EventId 20 -Message \"No AppxPackages found to disable\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Warning \r\n                Write-Warning \"No AppxPackages found to disable in $AppxConfigFilePath\"\r\n            }\r\n        }\r\n        Else \r\n        {\r\n\r\n            Write-EventLog -EventId 20 -Message \"Configuration file not found - $AppxConfigFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'AppxPackages' -EntryType Warning \r\n            Write-Warning \"Configuration file not found -  $AppxConfigFilePath\"\r\n        }\r\n    }\r\n    #endregion\r\n\r\n    #region Disable Scheduled Tasks\r\n\r\n    # This section is for disabling scheduled tasks.  If you find a task that should not be disabled\r\n    # change its \"VDIState\" from Disabled to Enabled, or remove it from the json completely.\r\n    If ($Optimizations -contains 'ScheduledTasks' -or $Optimizations -contains 'All') {\r\n        $ScheduledTasksFilePath = \"$outputPath\\ScheduledTasks.json\"\r\n        If (Test-Path $ScheduledTasksFilePath)\r\n        {\r\n            Write-EventLog -EventId 30 -Message \"[VDI Optimize] Disable Scheduled Tasks\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Information \r\n            Write-Host \"[VDI Optimize] Disable Scheduled Tasks\" -ForegroundColor Cyan\r\n            $SchTasksList = (Get-Content $ScheduledTasksFilePath | ConvertFrom-Json).Where( { $_.VDIState -eq 'Disabled' })\r\n            If ($SchTasksList.count -gt 0)\r\n            {\r\n                Foreach ($Item in $SchTasksList)\r\n                {\r\n                    $TaskObject = Get-ScheduledTask $Item.ScheduledTask\r\n                    If ($TaskObject -and $TaskObject.State -ne 'Disabled')\r\n                    {\r\n                        Write-EventLog -EventId 30 -Message \"Attempting to disable Scheduled Task: $($TaskObject.TaskName)\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Information \r\n                        Write-Verbose \"Attempting to disable Scheduled Task: $($TaskObject.TaskName)\"\r\n                        try\r\n                        {\r\n                            Disable-ScheduledTask -InputObject $TaskObject | Out-Null\r\n                            Write-EventLog -EventId 30 -Message \"Disabled Scheduled Task: $($TaskObject.TaskName)\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Information \r\n                        }\r\n                        catch\r\n                        {\r\n                            $msg = ($_ | Format-List | Out-String)\r\n                            Write-EventLog -EventId 130 -Message \"Failed to disabled Scheduled Task: $($TaskObject.TaskName) - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Error \r\n                        }\r\n                    }\r\n                    ElseIf ($TaskObject -and $TaskObject.State -eq 'Disabled') \r\n                    {\r\n                        Write-EventLog -EventId 30 -Message \"$($TaskObject.TaskName) Scheduled Task is already disabled\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Warning\r\n                    }\r\n                    Else\r\n                    {\r\n                        Write-EventLog -EventId 130 -Message \"Unable to find Scheduled Task: $($TaskObject.TaskName)\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Error\r\n                    }\r\n                }\r\n            }\r\n            Else\r\n            {\r\n                Write-EventLog -EventId 30 -Message \"No Scheduled Tasks found to disable\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Warning\r\n            }\r\n        }\r\n        Else \r\n        {\r\n            Write-EventLog -EventId 30 -Message \"File not found! -  $ScheduledTasksFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'ScheduledTasks' -EntryType Warning\r\n        }\r\n    }\r\n    #endregion\r\n\r\n    #region Customize Default User Profile\r\n\r\n    # Apply appearance customizations to default user registry hive, then close hive file\r\n    If ($Optimizations -contains \"DefaultUserSettings\" -or $Optimizations -contains \"All\")\r\n    {\r\n        $DefaultUserSettingsFilePath = \"$outputPath\\DefaultUserSettings.json\"\r\n        If (Test-Path $DefaultUserSettingsFilePath)\r\n        {\r\n            Write-EventLog -EventId 40 -Message \"Set Default User Settings\" -LogName 'Virtual Desktop Optimization' -Source 'VDOT' -EntryType Information\r\n            Write-Host \"[VDI Optimize] Set Default User Settings\" -ForegroundColor Cyan\r\n            $UserSettings = (Get-Content $DefaultUserSettingsFilePath | ConvertFrom-Json).Where( { $_.SetProperty -eq $true })\r\n            If ($UserSettings.Count -gt 0)\r\n            {\r\n                Write-EventLog -EventId 40 -Message \"Processing Default User Settings (Registry Keys)\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information\r\n                Write-Verbose \"Processing Default User Settings (Registry Keys)\"\r\n\r\n                & REG LOAD HKLM\\VDOT_TEMP C:\\Users\\Default\\NTUSER.DAT | Out-Null\r\n\r\n                Foreach ($Item in $UserSettings)\r\n                {\r\n                    If ($Item.PropertyType -eq \"BINARY\")\r\n                    {\r\n                        $Value = [byte[]]($Item.PropertyValue.Split(\",\"))\r\n                    }\r\n                    Else\r\n                    {\r\n                        $Value = $Item.PropertyValue\r\n                    }\r\n\r\n                    If (Test-Path -Path (\"{0}\" -f $Item.HivePath))\r\n                    {\r\n                        Write-EventLog -EventId 40 -Message \"Found $($Item.HivePath) - $($Item.KeyName)\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information        \r\n                        Write-Verbose \"Found $($Item.HivePath) - $($Item.KeyName)\"\r\n                        If (Get-ItemProperty -Path (\"{0}\" -f $Item.HivePath) -ErrorAction SilentlyContinue)\r\n                        {\r\n                            try {\r\n                                Write-EventLog -EventId 40 -Message \"Set $($Item.HivePath) - $Value\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information\r\n                                Set-ItemProperty -Path (\"{0}\" -f $Item.HivePath) -Name $Item.KeyName -Value $Value -Force \r\n                            } catch {\r\n                                $msg = ($_ | Format-List | Out-String)\r\n                                Write-EventLog -EventId 30 -Message \"Set failed for $($Item.HivePath) - $Value - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Error\r\n                            }\r\n                        }\r\n                        Else\r\n                        {\r\n                            try {\r\n                                Write-EventLog -EventId 40 -Message \"New $($Item.HivePath) Name $($Item.KeyName) PropertyType $($Item.PropertyType) Value $Value\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information\r\n                                New-ItemProperty -Path (\"{0}\" -f $Item.HivePath) -Name $Item.KeyName -PropertyType $Item.PropertyType -Value $Value -Force | Out-Null\r\n                            } catch {\r\n                                $msg = ($_ | Format-List | Out-String)\r\n                                Write-EventLog -EventId 30 -Message \"Unable to create New $($Item.HivePath) Name $($Item.KeyName) PropertyType $($Item.PropertyType) Value $Value - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Error\r\n                            }\r\n                        }\r\n                    }\r\n                    Else\r\n                    {\r\n                        Write-EventLog -EventId 40 -Message \"Registry Path not found $($Item.HivePath)\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information\r\n                        Write-EventLog -EventId 40 -Message \"Creating new Registry Key $($Item.HivePath)\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Information\r\n                        try {\r\n                            $newKey = New-Item -Path (\"{0}\" -f $Item.HivePath) -Force\r\n                            $newKey.Handle.Close()\r\n                            New-ItemProperty -Path (\"{0}\" -f $Item.HivePath) -Name $Item.KeyName -PropertyType $Item.PropertyType -Value $Value -Force | Out-Null\r\n                        } catch {\r\n                            $msg = ($_ | Format-List | Out-String)\r\n                            Write-EventLog -EventId 30 -Message \"Error creating new Registry Key $($Item.HivePath): $msg\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Error\r\n                        }\r\n                    }\r\n                }\r\n\r\n                [gc]::Collect()\r\n                & REG UNLOAD HKLM\\VDOT_TEMP | Out-Null\r\n            }\r\n            Else\r\n            {\r\n                Write-EventLog -EventId 40 -Message \"No Default User Settings to set\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Warning\r\n            }\r\n        }\r\n        Else\r\n        {\r\n            Write-EventLog -EventId 40 -Message \"File not found: $DefaultUserSettingsFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'DefaultUserSettings' -EntryType Warning\r\n        }    }\r\n    #endregion\r\n\r\n    #region Disable Windows Traces\r\n    If ($Optimizations -contains \"AutoLoggers\" -or $Optimizations -contains \"All\")\r\n    {\r\n        $AutoLoggersFilePath = \"$outputPath\\Autologgers.Json\"\r\n        If (Test-Path $AutoLoggersFilePath)\r\n        {\r\n            Write-EventLog -EventId 50 -Message \"Disable AutoLoggers\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Information\r\n            Write-Host \"[VDI Optimize] Disable Autologgers\" -ForegroundColor Cyan\r\n            $DisableAutologgers = (Get-Content $AutoLoggersFilePath | ConvertFrom-Json).Where( { $_.Disabled -eq 'True' })\r\n            If ($DisableAutologgers.count -gt 0)\r\n            {\r\n                Write-EventLog -EventId 50 -Message \"Disable AutoLoggers\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Information\r\n                Write-Verbose \"Processing Autologger Configuration File\"\r\n                Foreach ($Item in $DisableAutologgers)\r\n                {\r\n                    Write-EventLog -EventId 50 -Message \"Updating Registry Key for: $($Item.KeyName)\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Information\r\n                    Write-Verbose \"Updating Registry Key for: $($Item.KeyName)\"\r\n                    Try \r\n                    {\r\n                        New-ItemProperty -Path (\"{0}\" -f $Item.KeyName) -Name \"Start\" -PropertyType \"DWORD\" -Value 0 -Force -ErrorAction Stop | Out-Null\r\n                    }\r\n                    Catch\r\n                    {\r\n                        $msg = ($_ | Format-List | Out-String)\r\n                        Write-EventLog -EventId 150 -Message \"Failed to add $($Item.KeyName)`n`n $msg\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Error\r\n                    }\r\n                    \r\n                }\r\n            }\r\n            Else \r\n            {\r\n                Write-EventLog -EventId 50 -Message \"No Autologgers found to disable\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Warning\r\n                Write-Verbose \"No Autologgers found to disable\"\r\n            }\r\n        }\r\n        Else\r\n        {\r\n            Write-EventLog -EventId 150 -Message \"File not found: $AutoLoggersFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'AutoLoggers' -EntryType Error\r\n            Write-Warning \"File Not Found: $AutoLoggersFilePath\"\r\n        }\r\n    }\r\n    #endregion\r\n\r\n    #region Disable Services\r\n    If ($Optimizations -contains \"Services\" -or $Optimizations -contains \"All\")\r\n    {\r\n        $ServicesFilePath = \"$outputPath\\Services.json\"\r\n        If (Test-Path $ServicesFilePath)\r\n        {\r\n            Write-EventLog -EventId 60 -Message \"Disable Services\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Information\r\n            Write-Host \"[VDI Optimize] Disable Services\" -ForegroundColor Cyan\r\n            $ServicesToDisable = (Get-Content $ServicesFilePath | ConvertFrom-Json ).Where( { $_.VDIState -eq 'Disabled' })\r\n\r\n            If ($ServicesToDisable.count -gt 0)\r\n            {\r\n                Write-EventLog -EventId 60 -Message \"Processing Services Configuration File\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Information\r\n                Write-Verbose \"Processing Services Configuration File\"\r\n                Foreach ($Item in $ServicesToDisable)\r\n                {\r\n                    $service = Get-Service -Name $Item.name -ErrorAction SilentlyContinue\r\n                    if ($null -ne $service){\r\n                        if ($service.StartType -ne 'Disabled'){                        \r\n                            Write-EventLog -EventId 60 -Message \"Attempting to Stop Service $($Item.Name) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Information\r\n                            Write-Verbose \"Attempting to Stop Service $($Item.Name) - $($Item.Description)\"\r\n                            try\r\n                            {\r\n                                Stop-Service $Item.Name -Force\r\n                            }\r\n                            catch\r\n                            {\r\n                                $msg = ($_ | Format-List | Out-String)\r\n                                Write-EventLog -EventId 160 -Message \"Failed to disabled Service: $($Item.Name) `n $msg\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Error\r\n                                Write-Warning \"Failed to disabled Service: $($Item.Name) `n $msg\"\r\n                            }\r\n                            Write-EventLog -EventId 60 -Message \"Attempting to Disable Service $($Item.Name) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Information\r\n                            Write-Verbose \"Attempting to Disable Service $($Item.Name) - $($Item.Description)\"\r\n                            try {\r\n                                Set-Service $Item.Name -StartupType Disabled \r\n                            } catch {\r\n                                $msg = ($_ | Format-List | Out-String)\r\n                                Write-EventLog -EventId 60 -Message \"Unable to Disable Service $($Item.Name) - $($Item.Description) - $msg\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Error\r\n                            }\r\n                        } else {\r\n                            Write-EventLog -EventId 60 -Message \"Service was already disabled $($Item.Name) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Information\r\n                            Write-Verbose \"Service was already disabled $($Item.Name) - $($Item.Description)\"\r\n                        }\r\n                    } else {\r\n                        Write-EventLog -EventId 60 -Message \"Unable to find Service $($Item.Name) - $($Item.Description)\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Warning\r\n                        Write-Warning \"Unable to find Service $($Item.Name) - $($Item.Description)\"\r\n\r\n                    }\r\n                }\r\n            }  \r\n            Else\r\n            {\r\n                Write-EventLog -EventId 60 -Message \"No Services found to disable\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Warnnig\r\n                Write-Verbose \"No Services found to disable\"\r\n            }\r\n        }\r\n        Else\r\n        {\r\n            Write-EventLog -EventId 160 -Message \"File not found: $ServicesFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'Services' -EntryType Error\r\n            Write-Warning \"File not found: $ServicesFilePath\"\r\n        }    }\r\n    #endregion\r\n\r\n    #region Network Optimization\r\n    # LanManWorkstation optimizations\r\n    If ($Optimizations -contains \"NetworkOptimizations\" -or $Optimizations -contains \"All\")\r\n    {\r\n        $NetworkOptimizationsFilePath = \"$outputPath\\LanManWorkstation.json\"\r\n        If (Test-Path $NetworkOptimizationsFilePath)\r\n        {\r\n            Write-EventLog -EventId 70 -Message \"Configure LanManWorkstation Settings\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n            Write-Host \"[VDI Optimize] Configure LanManWorkstation Settings\" -ForegroundColor Cyan\r\n            $LanManSettings = Get-Content $NetworkOptimizationsFilePath | ConvertFrom-Json\r\n            If ($LanManSettings.Count -gt 0)\r\n            {\r\n                Write-EventLog -EventId 70 -Message \"Processing LanManWorkstation Settings ($($LanManSettings.Count) Hives)\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n                Write-Verbose \"Processing LanManWorkstation Settings ($($LanManSettings.Count) Hives)\"\r\n                Foreach ($Hive in $LanManSettings)\r\n                {\r\n                    If (Test-Path -Path $Hive.HivePath)\r\n                    {\r\n                        Write-EventLog -EventId 70 -Message \"Found $($Hive.HivePath)\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n                        Write-Verbose \"Found $($Hive.HivePath)\"\r\n                        $Keys = $Hive.Keys.Where{ $_.SetProperty -eq $true }\r\n                        If ($Keys.Count -gt 0)\r\n                        {\r\n                            Write-EventLog -EventId 70 -Message \"Create / Update LanManWorkstation Keys\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n                            Write-Verbose \"Create / Update LanManWorkstation Keys\"\r\n                            Foreach ($Key in $Keys)\r\n                            {\r\n                                If (Get-ItemProperty -Path $Hive.HivePath -Name $Key.Name -ErrorAction SilentlyContinue)\r\n                                {\r\n                                    Write-EventLog -EventId 70 -Message \"Setting $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue)\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n                                    Write-Verbose \"Setting $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue)\"\r\n                                    try {\r\n                                        Set-ItemProperty -Path $Hive.HivePath -Name $Key.Name -Value $Key.PropertyValue -Force\r\n                                    } catch {\r\n                                        $msg = ($_ | Format-List | Out-String)\r\n                                        Write-EventLog -EventId 70 -Message \"Error setting $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue) $msg\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Error\r\n                                    }\r\n                                }\r\n                                Else\r\n                                {\r\n                                    Write-EventLog -EventId 70 -Message \"New $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue)\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n                                    Write-Host \"New $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue)\"\r\n                                    try {\r\n                                        New-ItemProperty -Path $Hive.HivePath -Name $Key.Name -PropertyType $Key.PropertyType -Value $Key.PropertyValue -Force | Out-Null\r\n                                    } catch {\r\n                                        $msg = ($_ | Format-List | Out-String)\r\n                                        Write-EventLog -EventId 70 -Message \"Error creating New $($Hive.HivePath) -Name $($Key.Name) -Value $($Key.PropertyValue) $msg\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Error\r\n                                    }\r\n                                }\r\n                            }\r\n                        }\r\n                        Else\r\n                        {\r\n                            Write-EventLog -EventId 70 -Message \"No LanManWorkstation Keys to create / update\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Warning\r\n                            Write-Warning \"No LanManWorkstation Keys to create / update\"\r\n                        }  \r\n                    }\r\n                    Else\r\n                    {\r\n                        Write-EventLog -EventId 70 -Message \"Registry Path not found $($Hive.HivePath)\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Warning\r\n                        Write-Warning \"Registry Path not found $($Hive.HivePath)\"\r\n                    }\r\n                }\r\n            }\r\n            Else\r\n            {\r\n                Write-EventLog -EventId 70 -Message \"No LanManWorkstation Settings foun\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Warning\r\n                Write-Warning \"No LanManWorkstation Settings found\"\r\n            }\r\n        }\r\n        Else\r\n        {\r\n            Write-EventLog -EventId 70 -Message \"File not found - $NetworkOptimizationsFilePath\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Warning\r\n            Write-Warning \"File not found - $NetworkOptimizationsFilePath\"\r\n        }\r\n\r\n        # NIC Advanced Properties performance settings for network biased environments\r\n        Write-EventLog -EventId 70 -Message \"Configuring Network Adapter Buffer Size\" -LogName 'Virtual Desktop Optimization' -Source 'NetworkOptimizations' -EntryType Information\r\n        Write-Host \"[VDI Optimize] Configuring Network Adapter Buffer Size\" -ForegroundColor Cyan\r\n        Set-NetAdapterAdvancedProperty -DisplayName \"Send Buffer Size\" -DisplayValue 4MB\r\n        <#  NOTE:\r\n            Note that the above setting is for a Microsoft Hyper-V VM.  You can adjust these values in your environment...\r\n            by querying in PowerShell using Get-NetAdapterAdvancedProperty, and then adjusting values using the...\r\n            Set-NetAdapterAdvancedProperty command.\r\n        #>\r\n    }\r\n    #endregion\r\n\r\n    #region Disk Cleanup\r\n    # Delete not in-use files in locations C:\\Windows\\Temp and %temp%\r\n    # Also sweep and delete *.tmp, *.etl, *.evtx, *.log, *.dmp, thumbcache*.db (not in use==not needed)\r\n    # 5/18/20: Removing Disk Cleanup and moving some of those tasks to the following manual cleanup\r\n        If ($Optimizations -contains \"DiskCleanup\" -or $Optimizations -contains \"All\")\r\n        {\r\n            Write-EventLog -EventId 90 -Message \"Removing .tmp, .etl, .evtx, thumbcache*.db, *.log files not in use\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Removing .tmp, .etl, .evtx, thumbcache*.db, *.log files not in use\"\r\n            Get-ChildItem -Path c:\\ -Include *.tmp, *.dmp, *.etl, *.evtx, thumbcache*.db, *.log -File -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -ErrorAction SilentlyContinue\r\n\r\n            # Delete \"RetailDemo\" content (if it exits)\r\n            Write-EventLog -EventId 90 -Message \"Removing Retail Demo content (if it exists)\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Removing Retail Demo content (if it exists)\"\r\n            Get-ChildItem -Path $env:ProgramData\\Microsoft\\Windows\\RetailDemo\\* -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -ErrorAction SilentlyContinue\r\n\r\n            # Delete not in-use anything in the C:\\Windows\\Temp folder\r\n            Write-EventLog -EventId 90 -Message \"Removing all files not in use in $env:windir\\TEMP\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Removing all files not in use in $env:windir\\TEMP\"\r\n            Remove-Item -Path $env:windir\\Temp\\* -Recurse -Force -ErrorAction SilentlyContinue\r\n\r\n            # Clear out Windows Error Reporting (WER) report archive folders\r\n            Write-EventLog -EventId 90 -Message \"Cleaning up WER report archive\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Cleaning up WER report archive\"\r\n            Remove-Item -Path $env:ProgramData\\Microsoft\\Windows\\WER\\Temp\\* -Recurse -Force -ErrorAction SilentlyContinue\r\n            Remove-Item -Path $env:ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\* -Recurse -Force -ErrorAction SilentlyContinue\r\n            Remove-Item -Path $env:ProgramData\\Microsoft\\Windows\\WER\\ReportQueue\\* -Recurse -Force -ErrorAction SilentlyContinue\r\n\r\n            # Delete not in-use anything in your %temp% folder\r\n            Write-EventLog -EventId 90 -Message \"Removing files not in use in $env:temp directory\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Removing files not in use in $env:temp directory\"\r\n            Remove-Item -Path $env:TEMP\\* -Recurse -Force -ErrorAction SilentlyContinue\r\n\r\n            # Clear out ALL visible Recycle Bins\r\n            Write-EventLog -EventId 90 -Message \"Clearing out ALL Recycle Bins\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Clearing out ALL Recycle Bins\"\r\n            Clear-RecycleBin -Force -ErrorAction SilentlyContinue\r\n\r\n            # Clear out BranchCache cache\r\n            Write-EventLog -EventId 90 -Message \"Clearing BranchCache cache\" -LogName 'Virtual Desktop Optimization' -Source 'DiskCleanup' -EntryType Information\r\n            Write-Host \"Clearing BranchCache cache\" \r\n            Clear-BCCache -Force -ErrorAction SilentlyContinue\r\n        }    #endregion\r\n\r\n    Set-Location $CurrentLocation\r\n    $EndTime = Get-Date\r\n    $ScriptRunTime = New-TimeSpan -Start $StartTime -End $EndTime\r\n    Write-EventLog -LogName 'Virtual Desktop Optimization' -Source 'VDOT' -EntryType Information -EventId 1 -Message \"VDOT Total Run Time: $($ScriptRunTime.Hours) Hours $($ScriptRunTime.Minutes) Minutes $($ScriptRunTime.Seconds) Seconds\"\r\n    Write-Host \"`n`nThank you from the Virtual Desktop Optimization Team\" -ForegroundColor Cyan\r\n\r\n    If ($Restart) \r\n    {\r\n        Restart-Computer -Force\r\n    }\r\n    Else\r\n    {\r\n        Write-Warning \"A reboot is required for all changed to take effect\"\r\n    }\r\n    ########################  END OF SCRIPT  ########################\r\n}",
+    "securityBaseline": "Write-Host \"Starting script to apply Azure baseline to Windows\"\r\n\r\n# Set TLS client version for GitHub downloads\r\n[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\r\n\r\n# Create GuestConfig folder\r\n$gcFolder = New-Item -Path 'c:\\ProgramData\\' -Name 'GuestConfig' -ItemType 'Directory'\r\n\r\n# Resolve latest details about PowerShell releases\r\n$pwshLatestAssets = Invoke-RestMethod (Invoke-RestMethod https://api.github.com/repos/PowerShell/PowerShell/releases/latest).assets_url\r\n$pwshDownloadUrl = ($pwshLatestAssets | Where-Object { $_.browser_download_url -like \"*win-x64.zip\" }).browser_download_url\r\n$pwshZipFileName = $pwshDownloadUrl.split('/')[-1]\r\n\r\n# Download latest stable release of PowerShell\r\nWrite-Host \"Downloading PowerShell stand-alone binaries\"\r\n$pwshZipDownloadPath = Join-Path -Path $gcFolder -ChildPath $pwshZipFileName\r\n$invokeWebParams = @{\r\n    Uri     = $pwshDownloadUrl\r\n    OutFile = $pwshZipDownloadPath\r\n}\r\nInvoke-WebRequest @invokeWebParams\r\n\r\n# Extract zip file containing latest version of PowerShell\r\nWrite-Host \"Extracting PowerShell package\"\r\n$ZipDestinationPath = Join-Path -Path $gcFolder -ChildPath $pwshZipFileName.replace('.zip', '')\r\nExpand-Archive -Path $pwshZipDownloadPath -DestinationPath $ZipDestinationPath\r\n$pwshExePath = Join-Path -Path (Join-Path -Path $gcFolder -ChildPath $pwshZipFileName.replace('.zip', '')) -ChildPath 'pwsh.exe'\r\n\r\n# Save GuestConfiguration module\r\nWrite-Host \"Saving GuestConfiguration module\"\r\n$modulesFolder = New-Item -Path 'c:\\ProgramData\\GuestConfig' -Name 'modules' -ItemType 'Directory'\r\nInstall-PackageProvider -Name \"NuGet\" -Scope CurrentUser -Force\r\nSave-Module -Name GuestConfiguration -path $modulesFolder\r\n\r\n# Workaround: until GC supports applying modules authored as audit type (with warning)\r\n[scriptblock] $gcModuleDetails = {\r\n    $env:PSModulePath += ';c:\\ProgramData\\GuestConfig\\modules'\r\n    Import-Module 'GuestConfiguration'\r\n    Get-Module 'GuestConfiguration'\r\n}\r\n$gcModule = & $pwshExePath -Command $gcModuleDetails\r\n$gcModulePath = Join-Path -Path $gcModule.ModuleBase -ChildPath $gcModule.RootModule\r\n(Get-Content -Path $gcModulePath).replace('metaConfig.Type', 'true') | Set-Content -Path $gcModulePath\r\n\r\n# Start guest config remediation\r\nWrite-Host \"Applying Azure baseline\"\r\n[scriptblock] $remediation = {\r\n    $env:PSModulePath += ';c:\\ProgramData\\GuestConfig\\modules'\r\n    Import-Module 'GuestConfiguration'\r\n    <# Future\r\n    $Parameter = @(\r\n        @{\r\n            ResourceType          = ''\r\n            ResourceId            = 'User Account Control: Admin Approval Mode for the Built-in Administrator account'\r\n            ResourcePropertyName  = 'ExpectedValue'\r\n            ResourcePropertyValue = '0'\r\n        },\r\n        @{\r\n            ResourceType          = ''\r\n            ResourceId            = 'User Account Control: Admin Approval Mode for the Built-in Administrator account'\r\n            ResourcePropertyName  = 'RemediateValue'\r\n            ResourcePropertyValue = '0'\r\n        }\r\n    ) #>\r\n    Start-GuestConfigurationPackageRemediation -Path 'https://oaasguestconfigwcuss1.blob.core.windows.net/builtinconfig/AzureWindowsBaseline/AzureWindowsBaseline_1.2.0.0.zip' # -Parameter $Parameter\r\n\r\n    # Workaround: until GC module supports parameters for native code resources\r\n    Start-GuestConfigurationPackageRemediation -Path 'https://oaasguestconfigeaps1.blob.core.windows.net/builtinconfig/FilterAdministratorToken/FilterAdministratorToken_1.10.0.0.zip'\r\n}\r\n& $pwshExePath -Command $remediation\r\n\r\n# Workaround: allow admin WinRM connections from Packer but correct the setting on first boot\r\n# Create Scheduled Task to add FilterAdministratorToken first system boot, xml here-string\r\n$command = @'\r\nSet-ItemProperty -Path HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System -Name FilterAdministratorToken -Value 1 -Type DWord;\r\n$schedServiceCom = New-Object -ComObject \"Schedule.Service\";\r\n$schedServiceCom.Connect();\r\n$rootTaskFolder = $schedServiceCom.GetFolder('\\');\r\n$rootTaskFolder.DeleteTask('FilterAdministratorTokenEnablement', 0)\r\n'@\r\n$encodedCommand = [convert]::ToBase64String([System.Text.encoding]::Unicode.GetBytes($command))\r\n$taskDefinition = @'\r\n<Task version=\"1.4\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">\r\n  <RegistrationInfo>\r\n    <URI>\\FilterAdministratorTokenEnablement</URI>\r\n  </RegistrationInfo>\r\n  <Triggers>\r\n    <BootTrigger>\r\n      <Enabled>true</Enabled>\r\n    </BootTrigger>\r\n  </Triggers>\r\n  <Principals>\r\n    <Principal id=\"Author\">\r\n      <RunLevel>HighestAvailable</RunLevel>\r\n    </Principal>\r\n  </Principals>\r\n  <Settings>\r\n    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\r\n    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\r\n    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\r\n    <AllowHardTerminate>true</AllowHardTerminate>\r\n    <StartWhenAvailable>false</StartWhenAvailable>\r\n    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>\r\n    <IdleSettings>\r\n      <StopOnIdleEnd>true</StopOnIdleEnd>\r\n      <RestartOnIdle>false</RestartOnIdle>\r\n    </IdleSettings>\r\n    <AllowStartOnDemand>false</AllowStartOnDemand>\r\n    <Enabled>true</Enabled>\r\n    <Hidden>false</Hidden>\r\n    <RunOnlyIfIdle>false</RunOnlyIfIdle>\r\n    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>\r\n    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>\r\n    <WakeToRun>false</WakeToRun>\r\n    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>\r\n    <Priority>7</Priority>\r\n  </Settings>\r\n  <Actions Context=\"Author\">\r\n    <Exec>\r\n      <Command>C:\\Windows\\System32\\cmd.exe</Command>\r\n      <Arguments>/c PowerShell -ExecutionPolicy Bypass -OutputFormat Text -EncodedCommand #REPLACE</Arguments>\r\n    </Exec>\r\n  </Actions>\r\n</Task>\r\n'@ -replace '#REPLACE',$encodedCommand\r\n\r\n$schedServiceCom = New-Object -ComObject \"Schedule.Service\"\r\n$schedServiceCom.Connect()\r\n$filterAdminTokenTask = $schedServiceCom.NewTask($null)\r\n$filterAdminTokenTask.XmlText = $taskDefinition\r\n$rootTaskFolder = $schedServiceCom.GetFolder('\\')\r\n[void] $rootTaskFolder.RegisterTaskDefinition('FilterAdministratorTokenEnablement', $filterAdminTokenTask, 6, 'SYSTEM', $null, 1, $null)\r\n\r\n# Cleanup\r\nRemove-Item -Path 'c:\\ProgramData\\GuestConfig' -Recurse -Force\r\nRemove-Item -Path $env:LOCALAPPDATA\\PackageManagement\\ProviderAssemblies\\NuGet -Recurse -Force",
+    "vdiImages": [
+      "[json('{\r\n    \"name\": \"Windows10_20H2_Office\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"office-365\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd-o365pp\"\r\n}')]",
+      "[json('{\r\n    \"name\": \"Windows10_20H2\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"Windows-10\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd\"\r\n}')]"
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('gallery-{0}', parameters('time'))]",
+      "resourceGroup": "[parameters('avdResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "galleryName": {
+            "value": "avd_image_gallery"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "18204121135288503673"
+            }
+          },
+          "parameters": {
+            "galleryName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/galleries",
+              "apiVersion": "2021-07-01",
+              "name": "[parameters('galleryName')]",
+              "location": "[parameters('location')]"
+            }
+          ],
+          "outputs": {
+            "galleryId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/galleries', parameters('galleryName'))]"
+            },
+            "galleryName": {
+              "type": "string",
+              "value": "[parameters('galleryName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "copy": {
+        "name": "imageDefinitions",
+        "count": "[length(range(0, length(variables('vdiImages'))))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('image{0}-{1}', range(0, length(variables('vdiImages')))[copyIndex()], parameters('time'))]",
+      "resourceGroup": "[parameters('avdResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sku": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].sku]"
+          },
+          "osType": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].osType]"
+          },
+          "osState": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].osState]"
+          },
+          "imageGalleryName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('gallery-{0}', parameters('time'))), '2020-10-01').outputs.galleryName.value]"
+          },
+          "imageName": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].name]"
+          },
+          "offer": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].offer]"
+          },
+          "publisher": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].publisher]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "3258233961787286422"
+            }
+          },
+          "parameters": {
+            "imageName": {
+              "type": "string"
+            },
+            "imageGalleryName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "osType": {
+              "type": "string"
+            },
+            "osState": {
+              "type": "string"
+            },
+            "offer": {
+              "type": "string"
+            },
+            "publisher": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/galleries/images",
+              "apiVersion": "2021-07-01",
+              "name": "[format('{0}/{1}', parameters('imageGalleryName'), parameters('imageName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "osType": "[parameters('osType')]",
+                "osState": "[parameters('osState')]",
+                "identifier": {
+                  "offer": "[parameters('offer')]",
+                  "publisher": "[parameters('publisher')]",
+                  "sku": "[parameters('sku')]"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "imageId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/galleries/images', parameters('imageGalleryName'), parameters('imageName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('gallery-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "imageBuildDefinitions",
+        "count": "[length(range(0, length(variables('vdiImages'))))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('aib{0}-{1}', range(0, length(variables('vdiImages')))[copyIndex()], parameters('time'))]",
+      "resourceGroup": "[parameters('avdResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sku": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].sku]"
+          },
+          "imageId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[range(0, length(variables('vdiImages')))[copyIndex()]], parameters('time'))), '2020-10-01').outputs.imageId.value]"
+          },
+          "imageName": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].name]"
+          },
+          "imageRegions": {
+            "value": "[parameters('imageRegionReplicas')]"
+          },
+          "offer": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].offer]"
+          },
+          "managedIdentityId": {
+            "value": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]"
+          },
+          "publisher": {
+            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].publisher]"
+          },
+          "inlineScripts": {
+            "value": [
+              "[variables('vdiOptimize')]",
+              "[variables('securityBaseline')]"
+            ]
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "5399981175724953618"
+            }
+          },
+          "parameters": {
+            "inlineScripts": {
+              "type": "array"
+            },
+            "imageRegions": {
+              "type": "array"
+            },
+            "imageName": {
+              "type": "string"
+            },
+            "imageId": {
+              "type": "string"
+            },
+            "managedIdentityId": {
+              "type": "string"
+            },
+            "publisher": {
+              "type": "string"
+            },
+            "offer": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.VirtualMachineImages/imageTemplates",
+              "apiVersion": "2020-02-14",
+              "name": "[parameters('imageName')]",
+              "location": "[resourceGroup().location]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('managedIdentityId'))]": {}
+                }
+              },
+              "properties": {
+                "buildTimeoutInMinutes": 120,
+                "source": {
+                  "type": "PlatformImage",
+                  "publisher": "[parameters('publisher')]",
+                  "offer": "[parameters('offer')]",
+                  "sku": "[parameters('sku')]",
+                  "version": "latest"
+                },
+                "customize": [
+                  {
+                    "type": "PowerShell",
+                    "name": "Install Software",
+                    "inline": "[parameters('inlineScripts')]"
+                  },
+                  {
+                    "type": "WindowsUpdate",
+                    "searchCriteria": "IsInstalled=0",
+                    "filters": [
+                      "exclude:$_.Title -like \"*Preview*\"",
+                      "include:$true"
+                    ],
+                    "updateLimit": 45
+                  }
+                ],
+                "vmProfile": {
+                  "osDiskSizeGB": 128,
+                  "vmSize": "Standard_D2s_v4"
+                },
+                "distribute": [
+                  {
+                    "type": "SharedImage",
+                    "runOutputName": "myimage",
+                    "replicationRegions": "[parameters('imageRegions')]",
+                    "galleryImageId": "[parameters('imageId')]"
+                  }
+                ]
+              }
+            }
+          ],
+          "outputs": {
+            "aibImageId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.VirtualMachineImages/imageTemplates', parameters('imageName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[range(0, length(variables('vdiImages')))[copyIndex()]], parameters('time')))]"
+      ]
+    }
+  ]
+}

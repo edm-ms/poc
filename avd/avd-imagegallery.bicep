@@ -6,10 +6,17 @@ param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 @description('Name for managed identity used for Azure Image Builder')
 param managedIdentityName string       =  'uai-prod-global-imagebuilder'
 
+param imageRegionReplicas array = [
+  'EastUs'
+]
 
 var vdiOptimize = loadTextContent('./Parameters/21h2-vdi-optimizer.ps1')
 var securityBaseline = loadTextContent('./Parameters/azuresecuritybaseline.ps1')
-var officeImage = json(loadTextContent('./Parameters/image-20h2-office.json'))
+
+var vdiImages = [
+  json(loadTextContent('./Parameters/image-20h2-office.json'))
+  json(loadTextContent('./Parameters/image-20h2.json'))
+]
 
 resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: avdResourceGroup
@@ -31,36 +38,34 @@ module createImageGallery 'Modules/image-gallery.bicep' = {
   }
 }
 
-module createImageOffice 'Modules/image-definition.bicep' = {
+module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
-  name: 'officeImage-${time}'
+  name: 'image${i}-${time}'
   params: {
-    imageName: officeImage.name
+    sku: vdiImages[i].sku
+    osType: vdiImages[i].osType
+    osState: vdiImages[i].osState
     imageGalleryName: createImageGallery.outputs.galleryName
-    offer: officeImage.offer
-    osState: officeImage.osState
-    osType: officeImage.osType
-    publisher: officeImage.publisher
-    sku: officeImage.sku
+    imageName: vdiImages[i].name
+    offer: vdiImages[i].offer
+    publisher: vdiImages[i].publisher
   }
-}
+}]
 
-module buildOfficeImage 'Modules/image-builder.bicep' = {
+module imageBuildDefinitions 'Modules/image-builder.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
-  name: 'aibOffice-${time}'
+  name: 'aib${i}-${time}'
   params: {
-    imageId: createImageOffice.outputs.imageId
-    imageName: officeImage.name
-    imageRegions: [
-      'EastUS'
-    ]
+    sku: vdiImages[i].sku
+    imageId: imageDefinitions[i].outputs.imageId
+    imageName: vdiImages[i].name
+    imageRegions: imageRegionReplicas
+    offer: vdiImages[i].offer
+    managedIdentityId: identity.id
+    publisher: vdiImages[i].publisher
     inlineScripts: [
       vdiOptimize
       securityBaseline
     ]
-    managedIdentityId: identity.id
-    offer: officeImage.offer
-    publisher: officeImage.publisher
-    sku: officeImage.sku
   }
-}
+}]

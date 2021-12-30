@@ -1,4 +1,5 @@
 {
+    "name": "Windows10_20H2",
     "osType": "Windows",
     "osState": "Generalized",
     "offer": "Windows-10",

@@ -192,3 +192,11 @@ module assignAibRole 'Modules/role-assign.bicep' = {
     roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
   }
 }
+
+module createImageGallery 'Modules/image-gallery.bicep' = {
+  scope: avdRg
+  name: 'gallery-${time}'
+  params: {
+    galleryName: 'sig-prod-eus-avdgallery'
+  }
+}

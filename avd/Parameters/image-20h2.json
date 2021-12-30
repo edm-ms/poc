@@ -1,0 +1,7 @@
+{
+    "osType": "Windows",
+    "osState": "Generalized",
+    "offer": "Windows-10",
+    "publisher": "MicrosoftWindowsDesktop",
+    "sku": "20h2-evd"
+}

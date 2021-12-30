@@ -7,3 +7,4 @@ resource imageGallery 'Microsoft.Compute/galleries@2021-07-01' = {
 }
 
 output galleryId string = imageGallery.id
+output galleryName string = imageGallery.name

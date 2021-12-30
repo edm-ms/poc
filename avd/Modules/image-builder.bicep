@@ -44,7 +44,7 @@ resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
     ]
     vmProfile: {
       osDiskSizeGB: 128
-      vmSize: 'Standard_B2ms'
+      vmSize: 'Standard_D2s_v4'
     }
     distribute: [
       {

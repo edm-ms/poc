@@ -200,3 +200,13 @@ module createImageGallery 'Modules/image-gallery.bicep' = {
     galleryName: 'sig-prod-eus-avdgallery'
   }
 }
+
+module storageSas 'Modules/storage-sas.bicep' = {
+  scope: avdRg
+  name: 
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 
+    storageName: 
+  }
+}

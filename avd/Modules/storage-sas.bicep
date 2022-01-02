@@ -1,18 +1,29 @@
 @description('Name of the secret to store in Key Vault')
 param secretName string
 param location string = resourceGroup().location
-
 param storageName string
-param sasProperties object = {
+param keyVaultName string
+param time string = utcNow()
+
+var add1Hour = dateTimeAdd(time, 'PT1H')
+
+var sasReadProperties = {
   canonicalizedResource: '/blob/${storageName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'rl'
   signedExpiry: '2025-12-30T00:00:01Z'
-  signedResourceTypes: 'c'
+  signedResourceTypes: 'co'
 }
 
-param keyVaultName string
+var sasWriteProperties = {
+  canonicalizedResource: '/blob/${storageName}/aibscripts'
+  signedProtocol: 'https'
+  signedServices: 'b'
+  signedPermission: 'rlw'
+  signedExpiry: add1Hour
+  signedResourceTypes: 'co'
+}
 
 resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: keyVaultName
@@ -42,6 +53,6 @@ resource secretSas 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
   parent: kv
   name: secretName
   properties: {
-    value: listAccountSas(storageName, '2018-07-01', sasProperties).accountSasToken
+    value: listAccountSas(storageName, '2018-07-01', sasReadProperties).accountSasToken
   }
 }

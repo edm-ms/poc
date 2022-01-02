@@ -116,6 +116,11 @@ module kv 'Modules/keyvault.bicep' = {
   }
 }
 
+resource keyvault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
+  scope: avdRg
+  name: keyVaultName
+  dependsOn: []
+}
 module domainJoinPass 'Modules/keyVaultSecret.bicep' = {
   scope: avdRg
   name: 'domainSec-${time}'
@@ -201,12 +206,32 @@ module createImageGallery 'Modules/image-gallery.bicep' = {
   }
 }
 
-module storageSas 'Modules/storage-sas.bicep' = {
+// Build AVD resources
+
+module workspace 'Modules/workspace.bicep' = {
   scope: avdRg
-  name: 
+  name: 'workspace-${time}'
   params: {
-    keyVaultName: keyVaultName
-    secretName: 
-    storageName: 
+    name: 'avdw-prod-eus-sandbox'
+    workspaceFriendlyName: 'Sandbox'
+  }
+}
+
+module hostpool 'Modules/hostPool.bicep' = {
+  scope: avdRg
+  name: 'hostpool-${time}'
+  params: {
+    name: 'avdhp-prod-eus-sandbox'
+    hostpoolType: 'Pooled'
+  }
+}
+
+module applicationGroup 'Modules/applicationGroup.bicep' = {
+  scope: avdRg
+  name: 'appgroup-${time}'
+  params: {
+    appGroupType: 'Desktop'
+    hostpoolName: hostpool.outputs.hostPoolName
+    name: 'avdag-prod-eus-sandbox'
   }
 }

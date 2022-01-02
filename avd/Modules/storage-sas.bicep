@@ -8,7 +8,7 @@ param sasProperties object = {
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'rl'
-  signedExpiry: '2022-12-30T00:00:01Z'
+  signedExpiry: '2025-12-30T00:00:01Z'
   signedResourceTypes: 'c'
 }
 

@@ -6,17 +6,15 @@ param templateResourceGroup string    = 'rg-prod-eus-avdtemplates'
 @description('Name of resource group to hold HostPools, Application Groups, and Workspaces')
 param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 
-@description('Name of Key Vault used for AVD deployment secrets')
-param keyVaultName string                =  'kv-prod-eus-avd'
-
-@description('AAD object ID of security principal to grant Key Vault access')
-param objectId string
-
 @description('Name for managed identity used for Azure Image Builder')
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
 @description('Name for Azure Compute Gallery')
 param computeGalleryName string       =  'acg_prod_eus_avd'
+
+param imageRegionReplicas array       = [
+                                          'EastUs'
+                                        ]
 
 @description('Create custom Start VM on Connect Role')
 param createVmRole bool = true
@@ -33,6 +31,10 @@ param time string = utcNow()
 var startVmRoleDef = json(loadTextContent('./Parameters/start-vm-role.json'))
 var aibRoleDef = json(loadTextContent('./Parameters/aib-role.json'))
 var storageName =  'aibscripts${take(guid(subscription().subscriptionId, time), 8)}'
+var vdiImages = [
+  json(loadTextContent('./Parameters/image-20h2-office.json'))
+  json(loadTextContent('./Parameters/image-20h2.json'))
+]
 
 // ----------------------------------------
 // Resource Group Deployments
@@ -49,18 +51,6 @@ resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 // ----------------------------------------
 // Resource Deployments
-
-module kv 'Modules/keyvault.bicep' = {
-  scope: avdRg
-  name: 'avdkv-${time}'
-  params: {
-    keyVaultName: keyVaultName
-    objectId: objectId
-    enabledForDiskEncryption: true
-    enabledForTemplateDeployment: true
-    principalType: 'User'
-  }
-}
 
 module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   name: 'startVmRole-${time}'
@@ -101,14 +91,39 @@ module createImageGallery 'Modules/image-gallery.bicep' = {
   }
 }
 
-module storageAccount 'Modules/storage-sas.bicep' = {
+module vdiOptimizeScript 'Modules/deployment-script-uploadblob.bicep' = {
   scope: avdRg
-  name: 'storage-${time}'
+  name: 'vdiscript-${time}'
   params: {
-    keyVaultName: keyVaultName
-    secretName: 'aibscripts'
-    storageName: storageName
+    storageAccountName: storageName
   }
 }
 
+module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, length(vdiImages)): {
+  scope: avdRg
+  name: 'image${i}-${time}'
+  params: {
+    sku: vdiImages[i].sku
+    osType: vdiImages[i].osType
+    osState: vdiImages[i].osState
+    imageGalleryName: createImageGallery.outputs.galleryName
+    imageName: vdiImages[i].name
+    offer: vdiImages[i].offer
+    publisher: vdiImages[i].publisher
+  }
+}]
 
+module imageBuildDefinitions 'Modules/image-builderv2.bicep' = [for i in range(0, length(vdiImages)): {
+  scope: avdRg
+  name: 'aib${i}-${time}'
+  params: {
+    sku: vdiImages[i].sku
+    imageId: imageDefinitions[i].outputs.imageId
+    imageName: vdiImages[i].name
+    imageRegions: imageRegionReplicas
+    offer: vdiImages[i].offer
+    managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
+    publisher: vdiImages[i].publisher
+    scriptUri: vdiOptimizeScript.outputs.scriptUri
+  }
+}]

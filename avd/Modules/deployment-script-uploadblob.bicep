@@ -1,10 +1,21 @@
 param name string = 'uploadVdiOptimizerScript'
 param location string = resourceGroup().location
-param storageAccountName string = 'aibscrpt3012353s'
+param storageAccountName string
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var add1Hour = dateTimeAdd(time, 'PT1H')
+var add1Year = dateTimeAdd(time, 'PT1Y')
+
+var sasReadProperties = {
+  canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
+  signedProtocol: 'https'
+  signedServices: 'b'
+  signedPermission: 'lr'
+  signedExpiry: add1Year
+  signedResourceTypes: 'co'
+}
 var sasWriteProperties = {
+  canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'lwr'
@@ -22,9 +33,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   properties: {
     allowBlobPublicAccess: false
     minimumTlsVersion: 'TLS1_2'
-    networkAcls: {
-      defaultAction: 'Deny'
-    }
   }
 }
 
@@ -45,18 +53,17 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         )
       
       $uri            = "https://$storageName.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?$sasToken"
-      $vdiScriptUri   = 'https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1'
+      $vdiScriptUri   = "https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1"
       $file           = Invoke-RestMethod -Uri $vdiScriptUri -Method Get
 
       $headers = @{
         'x-ms-blob-type' = 'BlockBlob'
       }
-
-      Write-Host "Invoke-RestMethod -Uri $uri -Method Put -Headers $headers"
       
-      Invoke-RestMethod -Uri "$uri" -Method Put -Headers $headers -Body $file
+      Invoke-RestMethod -Uri $uri -Method Put -Headers $headers -Body $file
     '''
   }
 }
 
 output scriptId string = script.id
+output scriptUri string = 'https://${storageAccountName}.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?${listAccountSas(storageAccountName, '2021-06-01', sasReadProperties).accountSasToken}'

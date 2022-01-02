@@ -3,16 +3,17 @@ param secretName string
 param location string = resourceGroup().location
 param storageName string
 param keyVaultName string
-param time string = utcNow()
+param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var add1Hour = dateTimeAdd(time, 'PT1H')
+var add1Year = dateTimeAdd(time, 'PT1Y')
 
 var sasReadProperties = {
   canonicalizedResource: '/blob/${storageName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'rl'
-  signedExpiry: '2025-12-30T00:00:01Z'
+  signedExpiry: add1Year
   signedResourceTypes: 'co'
 }
 

@@ -4,7 +4,7 @@ param storageAccountName string
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var add1Hour = dateTimeAdd(time, 'PT1H')
-var add1Year = dateTimeAdd(time, 'PT1Y')
+var add1Year = dateTimeAdd(time, 'P1Y')
 
 var sasReadProperties = {
   canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
@@ -34,6 +34,13 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-06-01' = {
     allowBlobPublicAccess: false
     minimumTlsVersion: 'TLS1_2'
   }
+}
+
+resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-06-01' = {
+  name: '${storageAccountName}/default/aibscripts'
+  dependsOn: [
+    storage
+  ]
 }
 
 resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {

@@ -64,7 +64,7 @@ module keyvault 'Modules/keyvault.bicep' = {
   scope: avdRg
   name: 'avdkv-${time}'
   params: {
-    keyVaultName: '${keyVaultName}${take(guid(avdRg.id), 6)}'
+    keyVaultName: keyVaultName
     objectId: objectId
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
@@ -76,13 +76,13 @@ module vaultSecret 'Modules/keyVaultSecret.bicep' = {
   scope: avdRg
   name: 'scriptSas-${time}'
   params: {
-    keyVaultName: '${keyVaultName}${take(guid(avdRg.id), 6)}'
+    keyVaultName: keyvault.outputs.keyVaultName
     secretName: aibSecret
     secretValue: vdiOptimizeScript.outputs.scriptUri
   }
 }
 
-module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
+module vmRole 'Modules/custom-role.bicep' = if (createVmRole == true) {
   name: 'startVmRole-${time}'
   params: {
     roleDefinition: startVmRoleDef
@@ -104,9 +104,12 @@ module imageBuilderIdentity 'Modules/managedidentity.bicep' = {
   }
 }
 
-module assignAibRole 'Modules/role-assign.bicep' = {
+module assignAibRole 'Modules/role-assign.bicep' = if (createAibRole) {
   name: 'assignAib-${time}'
   scope: avdRg
+  dependsOn: [
+    aibRole
+  ]
   params: {
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
     roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
@@ -154,6 +157,6 @@ module imageBuildDefinitions 'Modules/image-builderv2.bicep' = [for i in range(0
     offer: vdiImages[i].offer
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     publisher: vdiImages[i].publisher
-    scriptUri: vdiOptimizeScript.outputs.scriptUri
+    scriptUri: keyvault.
   }
 }]

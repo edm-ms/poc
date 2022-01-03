@@ -4,7 +4,7 @@ targetScope = 'subscription'
 param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 
 @description('Name of Key Vault used for AVD deployment secrets')
-param keyVaultName string                =  'kv-prod-eus-avd'
+param keyVaultName string
 
 param hostPoolId string
 param ouPath string

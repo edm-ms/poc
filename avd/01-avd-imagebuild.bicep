@@ -16,13 +16,6 @@ param imageRegionReplicas array       = [
                                           'EastUs'
                                         ]
 
-@description('Name of Key Vault used for AVD deployment secrets')
-@maxLength(18)
-param keyVaultName string                =  'kv-prod-eus-avd'
-
-@description('AAD object ID of security principal to grant Key Vault access')
-param objectId string
-
 @description('Create custom Start VM on Connect Role')
 param createVmRole bool = true
 
@@ -37,7 +30,6 @@ param time string = utcNow()
 
 var startVmRoleDef = json(loadTextContent('./Parameters/start-vm-role.json'))
 var aibRoleDef = json(loadTextContent('./Parameters/aib-role.json'))
-var aibSecret = 'aibscriptsastoken'
 var storageName =  'aibscripts${take(guid(subscription().subscriptionId), 8)}'
 var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2-office.json'))
@@ -59,29 +51,6 @@ resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 // ----------------------------------------
 // Resource Deployments
-
-module keyvault 'Modules/keyvault.bicep' = {
-  scope: avdRg
-  name: 'avdkv-${time}'
-  params: {
-    keyVaultName: keyVaultName
-    objectId: objectId
-    enabledForDiskEncryption: true
-    enabledForTemplateDeployment: true
-    principalType: 'User'
-  }
-}
-
-module vaultSecret 'Modules/keyVaultSecret.bicep' = {
-  scope: avdRg
-  name: 'scriptSas-${time}'
-  params: {
-    keyVaultName: keyvault.outputs.keyVaultName
-    secretName: aibSecret
-    secretValue: vdiOptimizeScript.outputs.scriptUri
-  }
-}
-
 module vmRole 'Modules/custom-role.bicep' = if (createVmRole == true) {
   name: 'startVmRole-${time}'
   params: {
@@ -124,7 +93,7 @@ module createImageGallery 'Modules/image-gallery.bicep' = {
   }
 }
 
-module vdiOptimizeScript 'Modules/deployment-script-uploadblob.bicep' = {
+module vdiOptimizeScript 'Modules/image-scripts.bicep' = {
   scope: avdRg
   name: 'vdiscript-${time}'
   params: {
@@ -146,7 +115,7 @@ module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, le
   }
 }]
 
-module imageBuildDefinitions 'Modules/image-builderv2.bicep' = [for i in range(0, length(vdiImages)): {
+module imageBuildDefinitions 'Modules/image-template.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
   name: 'aib${i}-${time}'
   params: {
@@ -157,6 +126,6 @@ module imageBuildDefinitions 'Modules/image-builderv2.bicep' = [for i in range(0
     offer: vdiImages[i].offer
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     publisher: vdiImages[i].publisher
-    scriptUri: keyvault.
+    scriptUri: vdiOptimizeScript.outputs.scriptUri
   }
 }]

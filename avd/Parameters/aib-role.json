@@ -1,7 +1,7 @@
 {
-    "Name": "Azure Image Builder (Custom)",
+    "Name": "Azure Image Builder",
     "IsCustom": true,
-    "Description": "Azure Image Builder (Custom)",
+    "Description": "Azure Image Builder",
     "Actions": [
       "Microsoft.Compute/images/write",
       "Microsoft.Compute/images/read",

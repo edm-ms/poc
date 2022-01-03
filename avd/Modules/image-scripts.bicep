@@ -3,15 +3,15 @@ param location string = resourceGroup().location
 param storageAccountName string
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
-var add1Hour = dateTimeAdd(time, 'PT1H')
-var add1Day = dateTimeAdd(time, 'P1D')
+var oneHour = dateTimeAdd(time, 'PT1H')
+var twoYears = dateTimeAdd(time, 'P2Y')
 
 var sasReadProperties = {
   canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'lr'
-  signedExpiry: add1Day
+  signedExpiry: twoYears
   signedResourceTypes: 'co'
 }
 var sasWriteProperties = {
@@ -19,7 +19,7 @@ var sasWriteProperties = {
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'lwr'
-  signedExpiry: add1Hour
+  signedExpiry: oneHour
   signedResourceTypes: 'co'
 }
 

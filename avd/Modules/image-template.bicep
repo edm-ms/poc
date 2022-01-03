@@ -1,34 +1,62 @@
-targetScope = 'subscription'
+@secure()
+param scriptUri string
+param imageRegions array
+param imageName string
+param imageId string
+param managedIdentityId string
 
-param vdiImages array
-param imageDefinitions array
-param resourceGroup string
-param imageRegionReplicas array
-param imageBuilderIdentity string
-param keyVaultName string
-param aibSecret string
-param time string = utcNow()
+param publisher string
+param offer string
+param sku string
 
-resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
-  name: resourceGroup
-}
 
-resource keyvault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: keyVaultName
-  scope: avdRg
-}
-
-module imageBuildDefinitions 'image-builderv2.bicep' = [for i in range(0, length(vdiImages)): {
-  scope: avdRg
-  name: 'aib${i}-${time}'
-  params: {
-    sku: vdiImages[i].sku
-    imageId: imageDefinitions[i]
-    imageName: vdiImages[i].name
-    imageRegions: imageRegionReplicas
-    offer: vdiImages[i].offer
-    managedIdentityId: imageBuilderIdentity
-    publisher: vdiImages[i].publisher
-    scriptUri: keyvault.getSecret(aibSecret)
+resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
+  name: imageName
+  location: resourceGroup().location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+        '${managedIdentityId}' :{}
+    }
   }
-}]
+  properties: {
+    buildTimeoutInMinutes: 120
+    source: {
+      type: 'PlatformImage'
+      publisher: publisher
+      offer: offer
+      sku: sku
+      version: 'latest'
+    }
+    customize: [
+      {
+        type: 'PowerShell'
+        name: 'Install Software'
+        scriptUri: scriptUri
+      }
+      {
+        type: 'WindowsUpdate'
+        searchCriteria: 'IsInstalled=0'
+        filters: [
+            'exclude:$_.Title -like "*Preview*"'
+            'include:$true'
+                    ]
+        'updateLimit': 45
+    }
+    ]
+    vmProfile: {
+      osDiskSizeGB: 128
+      vmSize: 'Standard_D2s_v4'
+    }
+    distribute: [
+      {
+        type: 'SharedImage'
+        runOutputName: 'myimage'
+        replicationRegions: imageRegions
+        galleryImageId: imageId
+      }
+    ]
+  }
+}
+
+output aibImageId string = aib.id

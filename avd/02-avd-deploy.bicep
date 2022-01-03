@@ -6,11 +6,21 @@ param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 @description('Name of Key Vault used for AVD deployment secrets')
 param keyVaultName string
 
+param workspaceName string
+param applicationGroupName string
+param hostPoolName string
+@allowed([
+  'Personal'
+  'Pooled'
+])
+param hostPoolType string = 'Pooled'
+
 param hostPoolId string
 param ouPath string
 param imageId string
 param subnetName string
 param vnetId string
+param domainToJoin string
 @maxLength(10)
 param vmName string
 
@@ -31,14 +41,31 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: keyVaultName
 }
 
+module workspace 'Modules/workspace.bicep' = {
+  scope: avdRg
+  name: '${workspaceName}-${time}'
+  params: {
+    name: workspaceName
+  }
+}
+
+module hostPool 'Modules/hostPool.bicep' = {
+  scope: avdRg
+  name: '${hostPoolName}-${time}'
+  params: {
+    name: hostPoolName
+    hostpoolType: hostPoolType
+  }
+}
+
 module sessionHost 'Modules/sessionhostv2.bicep' = {
   scope: avdRg
-  name: 'sessionhost-${time}'
+  name: '${vmName}-${time}'
   params: {
     domainJoinPassword: keyVault.getSecret('domainjoinpassword')
-    domainToJoin: 'erickmoore.com'
+    domainToJoin: domainToJoin
     domainUserName: domainJoinAccount
-    hostPoolId: hostPoolId
+    hostPoolId: hostPool.outputs.hostPoolResourceId
     imageId: imageId
     localAdminName: localAdminAccount
     localAdminPassword: keyVault.getSecret('avdlocaladminpassword')

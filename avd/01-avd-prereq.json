@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "17007835930603898577"
+      "templateHash": "17856993167649469121"
     }
   },
   "parameters": {
@@ -46,6 +46,7 @@
     "keyVaultName": {
       "type": "string",
       "defaultValue": "kv-prod-eus-avd",
+      "maxLength": 18,
       "metadata": {
         "description": "Name of Key Vault used for AVD deployment secrets"
       }
@@ -82,7 +83,7 @@
     "startVmRoleDef": "[json('{\r\n    \"Name\": \"Start VM on connect (Custom)\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Start VM on connect with AVD (Custom)\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/virtualMachines/start/action\",\r\n      \"Microsoft.Compute/virtualMachines/*/read\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder (Custom)\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder (Custom)\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\"      \r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "aibSecret": "aibscriptsastoken",
-    "storageName": "[format('aibscripts{0}', take(guid(subscription().subscriptionId, parameters('time')), 8))]",
+    "storageName": "[format('aibscripts{0}', take(guid(subscription().subscriptionId), 8))]",
     "vdiImages": [
       "[json('{\r\n    \"name\": \"Windows10_20H2_Office\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"office-365\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd-o365pp\"\r\n}')]",
       "[json('{\r\n    \"name\": \"Windows10_20H2\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"Windows-10\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd\"\r\n}')]"
@@ -135,13 +136,13 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "6022979018996906713"
+              "templateHash": "1507245306556498420"
             }
           },
           "parameters": {
             "keyVaultName": {
               "type": "string",
-              "maxLength": 16,
+              "maxLength": 18,
               "metadata": {
                 "description": "Specifies the name of the key vault."
               }
@@ -306,7 +307,7 @@
         "mode": "Incremental",
         "parameters": {
           "keyVaultName": {
-            "value": "[parameters('keyVaultName')]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time'))), '2020-10-01').outputs.keyVaultName.value]"
           },
           "secretName": {
             "value": "[variables('aibSecret')]"
@@ -356,11 +357,12 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('vdiscript-{0}', parameters('time')))]"
       ]
     },
     {
-      "condition": "[parameters('createVmRole')]",
+      "condition": "[equals(parameters('createVmRole'), true())]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('startVmRole-{0}', parameters('time'))]",
@@ -422,7 +424,7 @@
       }
     },
     {
-      "condition": "[parameters('createAibRole')]",
+      "condition": "[equals(parameters('createAibRole'), true())]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('aibRole-{0}', parameters('time'))]",
@@ -547,6 +549,7 @@
       ]
     },
     {
+      "condition": "[equals(parameters('createAibRole'), true())]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('assignAib-{0}', parameters('time'))]",
@@ -692,7 +695,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "15256108916087557569"
+              "templateHash": "10012414999460823060"
             }
           },
           "parameters": {
@@ -714,13 +717,13 @@
           },
           "variables": {
             "add1Hour": "[dateTimeAdd(parameters('time'), 'PT1H')]",
-            "add1Year": "[dateTimeAdd(parameters('time'), 'P1Y')]",
+            "add1Day": "[dateTimeAdd(parameters('time'), 'P1D')]",
             "sasReadProperties": {
               "canonicalizedResource": "[format('/blob/{0}/aibscripts', parameters('storageAccountName'))]",
               "signedProtocol": "https",
               "signedServices": "b",
               "signedPermission": "lr",
-              "signedExpiry": "[variables('add1Year')]",
+              "signedExpiry": "[variables('add1Day')]",
               "signedResourceTypes": "co"
             },
             "sasWriteProperties": {

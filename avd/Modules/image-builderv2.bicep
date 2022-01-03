@@ -1,12 +1,14 @@
+@secure()
 param scriptUri string
 param imageRegions array
 param imageName string
-param imageId string 
+param imageId string
 param managedIdentityId string
 
 param publisher string
 param offer string
 param sku string
+
 
 resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
   name: imageName

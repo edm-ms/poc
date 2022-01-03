@@ -4,14 +4,14 @@ param storageAccountName string
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var add1Hour = dateTimeAdd(time, 'PT1H')
-var add1Year = dateTimeAdd(time, 'P1Y')
+var add1Day = dateTimeAdd(time, 'P1D')
 
 var sasReadProperties = {
   canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'lr'
-  signedExpiry: add1Year
+  signedExpiry: add1Day
   signedResourceTypes: 'co'
 }
 var sasWriteProperties = {

@@ -1,5 +1,5 @@
 @description('Specifies the name of the key vault.')
-@maxLength(16)
+@maxLength(18)
 param keyVaultName string
 
 @description('Specifies the Azure location where the key vault should be created.')

@@ -1,14 +1,17 @@
 targetScope = 'subscription'
 
 @description('Name of resource group to hold HostPools, Application Groups, and Workspaces')
-param avdResourceGroup string      = 'rg-sbx-eus-avdresources'
+param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 
 @description('Name of resource group to hold Virtual Machines')
-param vmResourceGroup string      = 'rg-sbx-eus-'
+param vmResourceGroup string      = 'rg-prod-eus-'
+
+@description('Name of resource group to create Template Spec')
+param templateResourceGroup string    = 'rg-prod-eus-avdtemplates'
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
-param keyVaultName string                =  'kv-sbx-eus-avd'
+param keyVaultName string                =  'kv-prod-eus-avd'
 
 @description('AAD object ID of security principal to grant Key Vault access')
 param objectId string = '9f27f40c-ae7b-4400-9c90-1b229a456e8b'
@@ -22,9 +25,9 @@ param hostPoolName string
 param hostPoolType string = 'Pooled'
 
 param ouPath string = 'OU=EastUS,OU=AVD,DC=erickmoore,DC=com'
-param imageId string = '/subscriptions/dec16b07-d234-4710-9d31-478e909560fd/resourceGroups/rg-sbx-eus-avdresources/providers/Microsoft.Compute/galleries/acg_sbx_eus_avd/images/Windows10_20H2'
-param subnetName string = 'desktops'
-param vnetId string = '/subscriptions/dec16b07-d234-4710-9d31-478e909560fd/resourceGroups/rg-sbx-eus-avdtestnetwork/providers/Microsoft.Network/virtualNetworks/vnet-sbx-eus-avdtest'
+param imageId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdresources/providers/Microsoft.Compute/galleries/acg_prod_eus_avd/images/Windows10_20H2'
+param subnetName string = 'sub-prod-eus-avd'
+param vnetId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork'
 param domainToJoin string = 'erickmoore.com'
 @maxLength(10)
 param vmName string
@@ -125,9 +128,11 @@ module applicationGroup 'Modules/applicationGroup.bicep' = {
     name: 'app-${hostPoolName}'
   }
 }
-
 module sessionHost 'Modules/sessionhostv2.bicep' = {
   scope: sessionHostsRg
+  dependsOn: [
+    keyvault
+  ]
   name: 'sh${vmName}-${time}'
   params: {
     domainJoinPassword: domainJoinPassword
@@ -143,5 +148,29 @@ module sessionHost 'Modules/sessionhostv2.bicep' = {
     vnetId: vnetId
     count: vmCount
     vmSize: vmSize
+  }
+}
+
+resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+  name: templateResourceGroup
+}
+module tsSessionHost 'Modules/template-sessionhost.bicep' = {
+  scope: tsRg
+  name: 'sessionHts-${time}'
+  params: {
+    subnetName: subnetName
+    domainJoinSecret: domainJoinSecret
+    vmSize: vmSize
+    count: vmCount
+    imageId: imageId
+    hostPoolId: hostPool.outputs.hostPoolResourceId
+    domainJoinUserName: domainJoinAccount
+    templateSpecDisplayName: 'SessionHostwKV'
+    domainToJoin: domainToJoin
+    vmName: vmName
+    ouPath: ouPath
+    localAdminName: localAdminAccount 
+    templateSpecName: 'SessionHostwVK'
+    vnetId: vnetId
   }
 }

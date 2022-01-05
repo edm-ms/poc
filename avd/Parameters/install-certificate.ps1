@@ -1,10 +1,10 @@
+$vaultUrl = 'https://kv-prod-eus-networking.vault.azure.net'
+$certName = 'azfw-prod-eus-firewall'
+$localPath = 'C:\Temp'
 
 $Response = Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata="true"}
 $KeyVaultToken = $Response.access_token
 
-$vaultUrl = 'https://kv-prod-eus-networking.vault.azure.net'
-$certName = 'azfw-prod-eus-firewall'
-$localPath = 'C:\Temp'
 
 if ((Test-Path -Path $localPath) -eq $false) { New-Item -ItemType Directory -Path $localPath }
 

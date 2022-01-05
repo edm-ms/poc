@@ -5,27 +5,34 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "13303373896333172010"
+      "templateHash": "321287729760625991"
     }
   },
   "parameters": {
     "avdResourceGroup": {
       "type": "string",
-      "defaultValue": "rg-sbx-eus-avdresources",
+      "defaultValue": "rg-prod-eus-avdresources",
       "metadata": {
         "description": "Name of resource group to hold HostPools, Application Groups, and Workspaces"
       }
     },
     "vmResourceGroup": {
       "type": "string",
-      "defaultValue": "rg-sbx-eus-",
+      "defaultValue": "rg-prod-eus-",
       "metadata": {
         "description": "Name of resource group to hold Virtual Machines"
       }
     },
+    "templateResourceGroup": {
+      "type": "string",
+      "defaultValue": "rg-prod-eus-avdtemplates",
+      "metadata": {
+        "description": "Name of resource group to create Template Spec"
+      }
+    },
     "keyVaultName": {
       "type": "string",
-      "defaultValue": "kv-sbx-eus-avd",
+      "defaultValue": "kv-prod-eus-avd",
       "maxLength": 18,
       "metadata": {
         "description": "Name of Key Vault used for AVD deployment secrets"
@@ -33,6 +40,7 @@
     },
     "objectId": {
       "type": "string",
+      "defaultValue": "9f27f40c-ae7b-4400-9c90-1b229a456e8b",
       "metadata": {
         "description": "AAD object ID of security principal to grant Key Vault access"
       }
@@ -57,15 +65,15 @@
     },
     "imageId": {
       "type": "string",
-      "defaultValue": "/subscriptions/dec16b07-d234-4710-9d31-478e909560fd/resourceGroups/rg-sbx-eus-avdresources/providers/Microsoft.Compute/galleries/acg_sbx_eus_avd/images/Windows10_20H2"
+      "defaultValue": "/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdresources/providers/Microsoft.Compute/galleries/acg_prod_eus_avd/images/Windows10_20H2"
     },
     "subnetName": {
       "type": "string",
-      "defaultValue": "desktops"
+      "defaultValue": "sub-prod-eus-avd"
     },
     "vnetId": {
       "type": "string",
-      "defaultValue": "/subscriptions/dec16b07-d234-4710-9d31-478e909560fd/resourceGroups/rg-sbx-eus-avdtestnetwork/providers/Microsoft.Network/virtualNetworks/vnet-sbx-eus-avdtest"
+      "defaultValue": "/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork"
     },
     "domainToJoin": {
       "type": "string",
@@ -1306,7 +1314,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "992631693775320451"
+              "templateHash": "12215612010241434412"
             }
           },
           "parameters": {
@@ -1427,6 +1435,11 @@
                 "storageProfile": {
                   "imageReference": {
                     "id": "[parameters('imageId')]"
+                  }
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true
                   }
                 },
                 "licenseType": "[parameters('licenseType')]",
@@ -1556,7 +1569,399 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('hp{0}-{1}', parameters('hostPoolName'), parameters('time')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time')))]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('sessionHostRg'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('sessionHts-{0}', parameters('time'))]",
+      "resourceGroup": "[parameters('templateResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "subnetName": {
+            "value": "[parameters('subnetName')]"
+          },
+          "domainJoinSecret": {
+            "value": "[variables('domainJoinSecret')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "count": {
+            "value": "[parameters('vmCount')]"
+          },
+          "imageId": {
+            "value": "[parameters('imageId')]"
+          },
+          "hostPoolId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('hp{0}-{1}', parameters('hostPoolName'), parameters('time'))), '2020-10-01').outputs.hostPoolResourceId.value]"
+          },
+          "domainJoinUserName": {
+            "value": "[parameters('domainJoinAccount')]"
+          },
+          "templateSpecDisplayName": {
+            "value": "SessionHostwKV"
+          },
+          "domainToJoin": {
+            "value": "[parameters('domainToJoin')]"
+          },
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "localAdminName": {
+            "value": "[parameters('localAdminAccount')]"
+          },
+          "templateSpecName": {
+            "value": "SessionHostwVK"
+          },
+          "vnetId": {
+            "value": "[parameters('vnetId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "1457342634222427654"
+            }
+          },
+          "parameters": {
+            "templateSpecName": {
+              "type": "string"
+            },
+            "templateSpecDisplayName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            },
+            "templateSpecVersion": {
+              "type": "string",
+              "defaultValue": "1.0"
+            },
+            "domainJoinUserName": {
+              "type": "string"
+            },
+            "domainToJoin": {
+              "type": "string"
+            },
+            "hostPoolId": {
+              "type": "string"
+            },
+            "imageId": {
+              "type": "string"
+            },
+            "localAdminName": {
+              "type": "string"
+            },
+            "ouPath": {
+              "type": "string"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "vmName": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "count": {
+              "type": "int"
+            },
+            "vmSize": {
+              "type": "string"
+            },
+            "domainJoinSecret": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/templateSpecs",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('templateSpecName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "displayName": "[parameters('templateSpecDisplayName')]"
+              },
+              "tags": "[parameters('tags')]"
+            },
+            {
+              "type": "Microsoft.Resources/templateSpecs/versions",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}/{1}', parameters('templateSpecName'), parameters('templateSpecVersion'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "mainTemplate": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "parameters": {
+                    "vmName": {
+                      "type": "string",
+                      "maxLength": 10,
+                      "defaultValue": "[parameters('vmName')]"
+                    },
+                    "tags": {
+                      "type": "object",
+                      "defaultValue": {}
+                    },
+                    "location": {
+                      "type": "string",
+                      "defaultValue": "[[resourceGroup().location]"
+                    },
+                    "aadJoin": {
+                      "type": "bool",
+                      "defaultValue": false
+                    },
+                    "count": {
+                      "type": "int",
+                      "defaultValue": 1
+                    },
+                    "imageId": {
+                      "type": "string"
+                    },
+                    "vmSize": {
+                      "type": "string",
+                      "defaultValue": "[parameters('vmSize')]"
+                    },
+                    "licenseType": {
+                      "type": "string",
+                      "defaultValue": "Windows_Client"
+                    },
+                    "installNVidiaGPUDriver": {
+                      "type": "bool",
+                      "defaultValue": false
+                    },
+                    "localAdminPassword": {
+                      "reference": {
+                        "keyVault": {
+                          "id": "[[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                        },
+                        "secretName": "[variables('localAdminUserSecret')]\""
+                      },
+                      "domainJoinPassword": {
+                        "reference": {
+                          "keyVault": {
+                            "id": "[[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                          },
+                          "secretName": "[parameters('domainJoinSecret')]"
+                        }
+                      }
+                    },
+                    "variables": {
+                      "hostPoolRg": "[format('{0}', split(parameters('hostPoolId'), '/')[4])]",
+                      "hostPoolName": "[format('{0}', split(parameters('hostPoolId'), '/')[8])]"
+                    },
+                    "resources": [
+                      {
+                        "copy": {
+                          "name": "networkInterface",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Network/networkInterfaces",
+                        "apiVersion": "2019-07-01",
+                        "name": "[[format('nic-{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[copyIndex()] 1))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "properties": {
+                          "ipConfigurations": [
+                            {
+                              "name": "ipconfig1",
+                              "properties": {
+                                "subnet": {
+                                  "id": "[format('{0}/subnets/{1}', parameters('vnetId'), parameters('subnetName'))]"
+                                },
+                                "privateIPAllocationMethod": "Dynamic"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "copy": {
+                          "name": "sessionHost",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Compute/virtualMachines",
+                        "apiVersion": "2019-07-01",
+                        "name": "[[format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[copyIndex()] 1))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "identity": {
+                          "type": "SystemAssigned"
+                        },
+                        "properties": {
+                          "osProfile": {
+                            "computerName": "[[format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[copyIndex()] 1))]",
+                            "adminUsername": "[parameters('localAdminName')]",
+                            "adminPassword": "[[parameters('localAdminPassword')]"
+                          },
+                          "hardwareProfile": {
+                            "vmSize": "[[parameters('vmSize')]"
+                          },
+                          "storageProfile": {
+                            "imageReference": {
+                              "id": "[parameters('imageId')]"
+                            }
+                          },
+                          "diagnosticsProfile": {
+                            "bootDiagnostics": {
+                              "enabled": true
+                            }
+                          },
+                          "licenseType": "[[parameters('licenseType')]",
+                          "networkProfile": {
+                            "networkInterfaces": [
+                              {
+                                "properties": {
+                                  "primary": true
+                                },
+                                "id": "[[resourceId('Microsoft.Network/networkInterfaces' format('nic-{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]"
+                              }
+                            ]
+                          }
+                        },
+                        "dependsOn": [
+                          "[[resourceId('Microsoft.Network/networkInterfaces' format('nic-{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                          "[[resourceId('Microsoft.Network/networkInterfaces' format('nic-{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]"
+                        ]
+                      },
+                      {
+                        "condition": "[[not(parameters('aadJoin'))]",
+                        "copy": {
+                          "name": "sessionHostDomainJoin",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Compute/virtualMachines/extensions",
+                        "apiVersion": "2020-06-01",
+                        "name": "[[format('{0}/JoinDomain' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "properties": {
+                          "publisher": "Microsoft.Compute",
+                          "type": "JsonADDomainExtension",
+                          "typeHandlerVersion": "1.3",
+                          "autoUpgradeMinorVersion": true,
+                          "settings": {
+                            "name": "[parameters('domainToJoin')]",
+                            "ouPath": "[parameters('ouPath')]",
+                            "user": "[parameters('domainJoinUserName')]",
+                            "restart": true,
+                            "options": 3
+                          },
+                          "protectedSettings": {
+                            "password": "[[parameters('domainJoinPassword')]"
+                          }
+                        },
+                        "dependsOn": [
+                          "[[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                          "[[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]"
+                        ]
+                      },
+                      {
+                        "condition": "[[parameters('aadJoin')]",
+                        "copy": {
+                          "name": "sessionHostAADLogin",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Compute/virtualMachines/extensions",
+                        "apiVersion": "2020-06-01",
+                        "name": "[[format('{0}/AADLoginForWindows' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "properties": {
+                          "publisher": "Microsoft.Azure.ActiveDirectory",
+                          "type": "AADLoginForWindows",
+                          "typeHandlerVersion": "1.0",
+                          "autoUpgradeMinorVersion": true
+                        },
+                        "dependsOn": [
+                          "[[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]"
+                        ]
+                      },
+                      {
+                        "copy": {
+                          "name": "sessionHostAVDAgent",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Compute/virtualMachines/extensions",
+                        "apiVersion": "2020-06-01",
+                        "name": "[[format('{0}/AddSessionHost' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "properties": {
+                          "publisher": "Microsoft.Powershell",
+                          "type": "DSC",
+                          "typeHandlerVersion": "2.73",
+                          "autoUpgradeMinorVersion": true,
+                          "settings": {
+                            "modulesUrl": "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_8-16-2021.zip",
+                            "configurationFunction": "Configuration.ps1\\AddSessionHost",
+                            "properties": {
+                              "hostPoolName": "[[variables('hostPoolName')]",
+                              "registrationInfoToken": "[[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}' subscription().subscriptionId variables('hostPoolRg')) 'Microsoft.DesktopVirtualization/hostPools' variables('hostPoolName')) '2021-01-14-preview').registrationInfo.token]",
+                              "aadJoin": "[[parameters('aadJoin')]"
+                            }
+                          }
+                        },
+                        "dependsOn": [
+                          "[[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                          "[[resourceId('Microsoft.Compute/virtualMachines/extensions' split(format('{0}/JoinDomain' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]]] 1))) '/')[0] split(format('{0}/JoinDomain' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]]] 1))) '/')[1])]"
+                        ]
+                      },
+                      {
+                        "condition": "[[parameters('installNVidiaGPUDriver')]",
+                        "copy": {
+                          "name": "sessionHostGPUDriver",
+                          "count": "[[length(range(0 parameters('count')))]"
+                        },
+                        "type": "Microsoft.Compute/virtualMachines/extensions",
+                        "apiVersion": "2020-06-01",
+                        "name": "[[format('{0}/InstallNvidiaGpuDriverWindows' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]",
+                        "location": "[[parameters('location')]",
+                        "tags": "[[parameters('tags')]",
+                        "properties": {
+                          "publisher": "Microsoft.HpcCompute",
+                          "type": "NvidiaGpuDriverWindows",
+                          "typeHandlerVersion": "1.3",
+                          "autoUpgradeMinorVersion": true,
+                          "settings": {}
+                        },
+                        "dependsOn": [
+                          "[[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}' parameters('vmName') add(range(0 parameters('count'))[range(0 parameters('count'))[copyIndex()]] 1)))]"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/templateSpecs', parameters('templateSpecName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('hp{0}-{1}', parameters('hostPoolName'), parameters('time')))]"
       ]
     }
   ]

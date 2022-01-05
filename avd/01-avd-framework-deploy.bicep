@@ -235,3 +235,21 @@ module applicationGroup 'Modules/applicationGroup.bicep' = {
     name: 'avdag-prod-eus-sandbox'
   }
 }
+
+
+
+
+module imageBuildDefinitions 'Modules/image-template.bicep' = [for i in range(0, length(vdiImages)): {
+  scope: avdRg
+  name: 'aib${i}-${time}'
+  params: {
+    sku: vdiImages[i].sku
+    imageId: imageDefinitions[i].outputs.imageId
+    imageName: vdiImages[i].name
+    imageRegions: imageRegionReplicas
+    offer: vdiImages[i].offer
+    managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
+    publisher: vdiImages[i].publisher
+    scriptUri: vdiOptimizeScript.outputs.scriptUri
+  }
+}]

@@ -33,13 +33,13 @@ resource keyvault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   scope: resourceGroup(keyVaultRg)
 }
 
-module sessionHosts 'Modules/sessionhost.bicep' = {
+module sessionHosts 'Modules/sessionhostv2.bicep' = {
   scope: vmRg
   name: 'sessionhost-${time}'
   params: {
     count: vmCount
     vmSize: vmSize
-    sku: '20h2-evd-o365pp'
+    imageId: 'asdsd'
     domainJoinPassword: keyvault.getSecret(domainJoinUserSecret)
     domainToJoin: domain
     domainUserName: domainJoinUpn

@@ -1,17 +1,18 @@
 param name string = 'uploadVdiOptimizerScript'
 param location string = resourceGroup().location
 param storageAccountName string
+param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1'
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var oneHour = dateTimeAdd(time, 'PT1H')
-var twoYears = dateTimeAdd(time, 'P2Y')
+var oneYear = dateTimeAdd(time, 'P1Y')
 
 var sasReadProperties = {
   canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
   signedProtocol: 'https'
   signedServices: 'b'
   signedPermission: 'lr'
-  signedExpiry: twoYears
+  signedExpiry: oneYear
   signedResourceTypes: 'co'
 }
 var sasWriteProperties = {
@@ -52,16 +53,16 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     retentionInterval: 'P1D'
     forceUpdateTag: time
     timeout: 'PT15M'
-    arguments: '-storageName \'${storageAccountName}\' -sasToken \'${listAccountSas(storageAccountName, '2021-06-01', sasWriteProperties).accountSasToken}\''
+    arguments: '-storageName \'${storageAccountName}\' -sasToken \'${listAccountSas(storageAccountName, '2021-06-01', sasWriteProperties).accountSasToken}\' -scriptUri \'${scriptUri}\''
     scriptContent: '''
       param(
         [string] [Parameter(Mandatory=$true)] $storageName,
-        [string] [Parameter(Mandatory=$true)] $sasToken
+        [string] [Parameter(Mandatory=$true)] $sasToken,
+        [string] [Parameter(Mandatory=$true)] $scriptUri
         )
       
       $uri            = "https://$storageName.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?$sasToken"
-      $vdiScriptUri   = "https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1"
-      $file           = Invoke-RestMethod -Uri $vdiScriptUri -Method Get
+      $file           = Invoke-RestMethod -Uri $scriptUri -Method Get
 
       $headers = @{
         'x-ms-blob-type' = 'BlockBlob'

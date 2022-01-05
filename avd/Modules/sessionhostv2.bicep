@@ -25,12 +25,12 @@ var hostPoolRg = split(hostPoolId, '/')[4]
 var hostPoolName = split(hostPoolId, '/')[8]
 
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents
-resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-01-14-preview' existing = {
+resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
   name: hostPoolName
   scope: resourceGroup(hostPoolRg)
 }
 
-resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [for i in range(0, count): {
+resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [for i in range(0, count): {
   name: 'nic-${vmName}-${i + 1}'
   location: location
   tags: tags
@@ -49,7 +49,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2019-07-01' = [fo
   }
 }]
 
-resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in range(0, count): {
+resource sessionHost 'Microsoft.Compute/virtualMachines@2021-07-01' = [for i in range(0, count): {
   name: '${vmName}-${i + 1}'
   location: location
   tags: tags
@@ -68,6 +68,11 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in 
     storageProfile: {
       imageReference: {
         id: imageId
+      }
+    }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
       }
     }
     licenseType: licenseType
@@ -89,7 +94,7 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2019-07-01' = [for i in 
 }]
 
 // Run this if we are not Azure AD joining the session hosts
-resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@2020-06-01' = [for i in range(0, count): if (!aadJoin) {
+resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = [for i in range(0, count): if (!aadJoin) {
   name: '${sessionHost[i].name}/JoinDomain'
   location: location
   tags: tags
@@ -116,7 +121,7 @@ resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@202
 }]
 
 // Run this if we are Azure AD joining the session hosts - no intune support
-resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2020-06-01' = [for i in range(0, count): if (aadJoin) {
+resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = [for i in range(0, count): if (aadJoin) {
   name: '${sessionHost[i].name}/AADLoginForWindows'
   location: location
   tags: tags
@@ -128,7 +133,7 @@ resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2020-
   }
 }]
 
-resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2020-06-01' = [for i in range(0, count): {
+resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = [for i in range(0, count): {
   name: '${sessionHost[i].name}/AddSessionHost'
   location: location
   tags: tags
@@ -153,7 +158,7 @@ resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2020-
   ]
 }]
 
-resource sessionHostGPUDriver 'Microsoft.Compute/virtualMachines/extensions@2020-06-01' = [for i in range(0, count): if (installNVidiaGPUDriver) {
+resource sessionHostGPUDriver 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = [for i in range(0, count): if (installNVidiaGPUDriver) {
   name: '${sessionHost[i].name}/InstallNvidiaGpuDriverWindows'
   location: location
   tags: tags

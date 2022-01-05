@@ -28,6 +28,7 @@ param time string = utcNow()
 // ----------------------------------------
 // Variable declaration
 
+var defaultImage = json(loadTextContent('./Parameters/image-20h2.json'))
 var startVmRoleDef = json(loadTextContent('./Parameters/start-vm-role.json'))
 var aibRoleDef = json(loadTextContent('./Parameters/aib-role.json'))
 var storageName =  'aibscripts${take(guid(subscription().subscriptionId), 8)}'
@@ -51,6 +52,7 @@ resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 // ----------------------------------------
 // Resource Deployments
+
 module vmRole 'Modules/custom-role.bicep' = if (createVmRole == true) {
   name: 'startVmRole-${time}'
   params: {
@@ -85,6 +87,21 @@ module assignAibRole 'Modules/role-assign.bicep' = if (createAibRole) {
   }
 }
 
+module imageDefinitionTemplate 'Modules/template-image-definition.bicep' = {
+  scope: tsRg
+  name: 'imageSpec-${time}'
+  params: {
+    templateSpecDisplayName: 'Image Builder Definition'
+    templateSpecName: 'Image-Definition'
+    buildDefinition: defaultImage
+    imageId: imageDefinitions[1].outputs.imageId
+    imageRegions: imageRegionReplicas
+    managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
+    scriptUri: ''
+  }
+}
+
+
 module createImageGallery 'Modules/image-gallery.bicep' = {
   scope: avdRg
   name: 'gallery-${time}'
@@ -115,17 +132,14 @@ module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, le
   }
 }]
 
-module imageBuildDefinitions 'Modules/image-template.bicep' = [for i in range(0, length(vdiImages)): {
+module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
   name: 'aib${i}-${time}'
   params: {
-    sku: vdiImages[i].sku
+    buildDefinition: vdiImages[i]
     imageId: imageDefinitions[i].outputs.imageId
-    imageName: vdiImages[i].name
     imageRegions: imageRegionReplicas
-    offer: vdiImages[i].offer
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
-    publisher: vdiImages[i].publisher
     scriptUri: vdiOptimizeScript.outputs.scriptUri
   }
 }]

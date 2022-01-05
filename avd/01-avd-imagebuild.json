@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "2021340945155514223"
+      "templateHash": "14102289864917476825"
     }
   },
   "parameters": {
@@ -66,6 +66,7 @@
     }
   },
   "variables": {
+    "defaultImage": "[json('{\r\n    \"name\": \"Windows10_20H2\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"Windows-10\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd\"\r\n}')]",
     "startVmRoleDef": "[json('{\r\n    \"Name\": \"Start VM on connect (Custom)\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Start VM on connect with AVD (Custom)\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/virtualMachines/start/action\",\r\n      \"Microsoft.Compute/virtualMachines/*/read\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\"      \r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "storageName": "[format('aibscripts{0}', take(guid(subscription().subscriptionId), 8))]",
@@ -344,6 +345,190 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
+      "name": "[format('imageSpec-{0}', parameters('time'))]",
+      "resourceGroup": "[parameters('templateResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "templateSpecDisplayName": {
+            "value": "Image Builder Definition"
+          },
+          "templateSpecName": {
+            "value": "Image-Definition"
+          },
+          "buildDefinition": {
+            "value": "[variables('defaultImage')]"
+          },
+          "imageId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[1], parameters('time'))), '2020-10-01').outputs.imageId.value]"
+          },
+          "imageRegions": {
+            "value": "[parameters('imageRegionReplicas')]"
+          },
+          "managedIdentityId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityResourceId.value]"
+          },
+          "scriptUri": {
+            "value": ""
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "13518395966777151604"
+            }
+          },
+          "parameters": {
+            "templateSpecName": {
+              "type": "string"
+            },
+            "templateSpecDisplayName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "templateSpecVersion": {
+              "type": "string",
+              "defaultValue": "1.0"
+            },
+            "managedIdentityId": {
+              "type": "string"
+            },
+            "scriptUri": {
+              "type": "secureString",
+              "defaultValue": ""
+            },
+            "imageId": {
+              "type": "string"
+            },
+            "buildDefinition": {
+              "type": "object"
+            },
+            "imageRegions": {
+              "type": "array"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/templateSpecs",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('templateSpecName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "displayName": "[parameters('templateSpecDisplayName')]"
+              },
+              "tags": {}
+            },
+            {
+              "type": "Microsoft.Resources/templateSpecs/versions",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}/{1}', parameters('templateSpecName'), parameters('templateSpecVersion'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "mainTemplate": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "parameters": {
+                    "scriptUri": {
+                      "type": "secureString"
+                    },
+                    "imageRegions": {
+                      "type": "array",
+                      "defaultValue": "[parameters('imageRegions')]"
+                    },
+                    "imageId": {
+                      "type": "string",
+                      "defaultValue": "[parameters('imageId')]"
+                    },
+                    "managedIdentityId": {
+                      "type": "string",
+                      "defaultValue": "[parameters('managedIdentityId')]"
+                    },
+                    "buildDefinition": {
+                      "type": "object",
+                      "defaultValue": "[parameters('buildDefinition')]"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.VirtualMachineImages/imageTemplates",
+                      "apiVersion": "2020-02-14",
+                      "name": "[[parameters('buildDefinition').value.name]",
+                      "location": "[[resourceGroup().location]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[[parameters('managedIdentityId')]": {}
+                        }
+                      },
+                      "properties": {
+                        "buildTimeoutInMinutes": 120,
+                        "source": {
+                          "type": "PlatformImage",
+                          "publisher": "[parameters('buildDefinition')].value.publisher",
+                          "offer": "[[parameters('buildDefinition').value.offer]",
+                          "sku": "[[parameters('buildDefinition').value.sku]",
+                          "version": "latest"
+                        },
+                        "customize": [
+                          {
+                            "type": "PowerShell",
+                            "name": "Install and Configure",
+                            "scriptUri": "[[parameters('scriptUri')]"
+                          },
+                          {
+                            "type": "WindowsUpdate",
+                            "searchCriteria": "IsInstalled=0",
+                            "filters": [
+                              "exclude:$_.Title -like '*Preview*'",
+                              "include:$true"
+                            ],
+                            "updateLimit": 45
+                          }
+                        ],
+                        "vmProfile": {
+                          "osDiskSizeGB": 128,
+                          "vmSize": "Standard_D2s_v4"
+                        },
+                        "distribute": [
+                          {
+                            "type": "SharedImage",
+                            "runOutputName": "myimage",
+                            "replicationRegions": "[[parameters('imageRegions')]",
+                            "galleryImageId": "[[parameters('imageId')]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "tags": {},
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/templateSpecs', parameters('templateSpecName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[1], parameters('time')))]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('templateResourceGroup'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
       "name": "[format('gallery-{0}', parameters('time'))]",
       "resourceGroup": "[parameters('avdResourceGroup')]",
       "properties": {
@@ -421,7 +606,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "16695474207126183095"
+              "templateHash": "15218741630208903153"
             }
           },
           "parameters": {
@@ -436,6 +621,10 @@
             "storageAccountName": {
               "type": "string"
             },
+            "scriptUri": {
+              "type": "string",
+              "defaultValue": "https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1"
+            },
             "time": {
               "type": "string",
               "defaultValue": "[utcNow('yyyy-MM-ddTHH:mm:ssZ')]"
@@ -449,7 +638,7 @@
               "signedProtocol": "https",
               "signedServices": "b",
               "signedPermission": "lr",
-              "signedExpiry": "[variables('twoYears')]",
+              "signedExpiry": "[variables('oneHour')]",
               "signedResourceTypes": "co"
             },
             "sasWriteProperties": {
@@ -495,8 +684,8 @@
                 "retentionInterval": "P1D",
                 "forceUpdateTag": "[parameters('time')]",
                 "timeout": "PT15M",
-                "arguments": "[format('-storageName ''{0}'' -sasToken ''{1}''', parameters('storageAccountName'), listAccountSas(parameters('storageAccountName'), '2021-06-01', variables('sasWriteProperties')).accountSasToken)]",
-                "scriptContent": "      param(\r\n        [string] [Parameter(Mandatory=$true)] $storageName,\r\n        [string] [Parameter(Mandatory=$true)] $sasToken\r\n        )\r\n      \r\n      $uri            = \"https://$storageName.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?$sasToken\"\r\n      $vdiScriptUri   = \"https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1\"\r\n      $file           = Invoke-RestMethod -Uri $vdiScriptUri -Method Get\r\n\r\n      $headers = @{\r\n        'x-ms-blob-type' = 'BlockBlob'\r\n      }\r\n      \r\n      Invoke-RestMethod -Uri $uri -Method Put -Headers $headers -Body $file\r\n    "
+                "arguments": "[format('-storageName ''{0}'' -sasToken ''{1}'' -scriptUri ''{2}''', parameters('storageAccountName'), listAccountSas(parameters('storageAccountName'), '2021-06-01', variables('sasWriteProperties')).accountSasToken, parameters('scriptUri'))]",
+                "scriptContent": "      param(\r\n        [string] [Parameter(Mandatory=$true)] $storageName,\r\n        [string] [Parameter(Mandatory=$true)] $sasToken,\r\n        [string] [Parameter(Mandatory=$true)] $scriptUri\r\n        )\r\n      \r\n      $uri            = \"https://$storageName.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?$sasToken\"\r\n      $file           = Invoke-RestMethod -Uri $scriptUri -Method Get\r\n\r\n      $headers = @{\r\n        'x-ms-blob-type' = 'BlockBlob'\r\n      }\r\n      \r\n      Invoke-RestMethod -Uri $uri -Method Put -Headers $headers -Body $file\r\n    "
               }
             }
           ],
@@ -618,149 +807,6 @@
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('gallery-{0}', parameters('time')))]"
-      ]
-    },
-    {
-      "copy": {
-        "name": "imageBuildDefinitions",
-        "count": "[length(range(0, length(variables('vdiImages'))))]"
-      },
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2020-10-01",
-      "name": "[format('aib{0}-{1}', range(0, length(variables('vdiImages')))[copyIndex()], parameters('time'))]",
-      "resourceGroup": "[parameters('avdResourceGroup')]",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "sku": {
-            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].sku]"
-          },
-          "imageId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[range(0, length(variables('vdiImages')))[copyIndex()]], parameters('time'))), '2020-10-01').outputs.imageId.value]"
-          },
-          "imageName": {
-            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].name]"
-          },
-          "imageRegions": {
-            "value": "[parameters('imageRegionReplicas')]"
-          },
-          "offer": {
-            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].offer]"
-          },
-          "managedIdentityId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityResourceId.value]"
-          },
-          "publisher": {
-            "value": "[variables('vdiImages')[range(0, length(variables('vdiImages')))[copyIndex()]].publisher]"
-          },
-          "scriptUri": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('vdiscript-{0}', parameters('time'))), '2020-10-01').outputs.scriptUri.value]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.4.1124.51302",
-              "templateHash": "8223385863397701538"
-            }
-          },
-          "parameters": {
-            "scriptUri": {
-              "type": "secureString"
-            },
-            "imageRegions": {
-              "type": "array"
-            },
-            "imageName": {
-              "type": "string"
-            },
-            "imageId": {
-              "type": "string"
-            },
-            "managedIdentityId": {
-              "type": "string"
-            },
-            "publisher": {
-              "type": "string"
-            },
-            "offer": {
-              "type": "string"
-            },
-            "sku": {
-              "type": "string"
-            }
-          },
-          "resources": [
-            {
-              "type": "Microsoft.VirtualMachineImages/imageTemplates",
-              "apiVersion": "2020-02-14",
-              "name": "[parameters('imageName')]",
-              "location": "[resourceGroup().location]",
-              "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                  "[format('{0}', parameters('managedIdentityId'))]": {}
-                }
-              },
-              "properties": {
-                "buildTimeoutInMinutes": 120,
-                "source": {
-                  "type": "PlatformImage",
-                  "publisher": "[parameters('publisher')]",
-                  "offer": "[parameters('offer')]",
-                  "sku": "[parameters('sku')]",
-                  "version": "latest"
-                },
-                "customize": [
-                  {
-                    "type": "PowerShell",
-                    "name": "Install Software",
-                    "scriptUri": "[parameters('scriptUri')]"
-                  },
-                  {
-                    "type": "WindowsUpdate",
-                    "searchCriteria": "IsInstalled=0",
-                    "filters": [
-                      "exclude:$_.Title -like \"*Preview*\"",
-                      "include:$true"
-                    ],
-                    "updateLimit": 45
-                  }
-                ],
-                "vmProfile": {
-                  "osDiskSizeGB": 128,
-                  "vmSize": "Standard_D2s_v4"
-                },
-                "distribute": [
-                  {
-                    "type": "SharedImage",
-                    "runOutputName": "myimage",
-                    "replicationRegions": "[parameters('imageRegions')]",
-                    "galleryImageId": "[parameters('imageId')]"
-                  }
-                ]
-              }
-            }
-          ],
-          "outputs": {
-            "aibImageId": {
-              "type": "string",
-              "value": "[resourceId('Microsoft.VirtualMachineImages/imageTemplates', parameters('imageName'))]"
-            }
-          }
-        }
-      },
-      "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[range(0, length(variables('vdiImages')))[copyIndex()]], parameters('time')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('vdiscript-{0}', parameters('time')))]"
       ]
     }
   ]

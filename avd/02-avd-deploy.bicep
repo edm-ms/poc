@@ -30,7 +30,7 @@ param subnetName string = 'sub-prod-eus-avd'
 param vnetId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork'
 param domainToJoin string = 'erickmoore.com'
 @maxLength(10)
-param vmName string
+param vmName string = 'testpoc'
 
 @maxValue(200)
 param vmCount int = 1
@@ -154,23 +154,24 @@ module sessionHost 'Modules/sessionhostv2.bicep' = {
 resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: templateResourceGroup
 }
-module tsSessionHost 'Modules/template-sessionhost.bicep' = {
+module tsSessionHost 'Modules/template-sessionhostv2.bicep' = {
   scope: tsRg
   name: 'sessionHts-${time}'
   params: {
     subnetName: subnetName
-    domainJoinSecret: domainJoinSecret
+    keyVaultName: keyvault.outputs.keyVaultName
+    keyVaultResourceGroup: avdResourceGroup
     vmSize: vmSize
     count: vmCount
     imageId: imageId
     hostPoolId: hostPool.outputs.hostPoolResourceId
     domainJoinUserName: domainJoinAccount
-    templateSpecDisplayName: 'SessionHostwKV'
+    templateSpecDisplayName: '${hostPoolName}-SessionHost'
     domainToJoin: domainToJoin
     vmName: vmName
     ouPath: ouPath
     localAdminName: localAdminAccount 
-    templateSpecName: 'SessionHostwVK'
+    templateSpecName: '${hostPoolName}-SessionHost'
     vnetId: vnetId
   }
 }

@@ -15,9 +15,11 @@ param vmName string
 param vnetId string
 param count int
 param vmSize string
+param keyVaultName string
+param keyVaultResourceGroup string
 
-param domainJoinSecret string
-
+var hostPoolRg = split(hostPoolId, '/')[4]
+var hostPoolName = split(hostPoolId, '/')[8]
 
 resource templateSpec 'Microsoft.Resources/templateSpecs@2021-05-01' = {
   name: templateSpecName
@@ -28,6 +30,10 @@ resource templateSpec 'Microsoft.Resources/templateSpecs@2021-05-01' = {
   tags: tags
 }
 
+resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
+  name: hostPoolName
+  scope: resourceGroup(hostPoolRg)
+}
 
 resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-05-01' = {
   parent: templateSpec
@@ -38,51 +44,8 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
       '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
       'contentVersion': '1.0.0.0'
       'parameters': {
-        'keyVaultName': {
-          'type': 'string'
-
-        }
-        'domainJoinUserName': {
-          'type': 'string'
-        }
-        'domainJoinPassword': {
-          'type': 'secureString'
-        }
-        'domainToJoin': {
-          'type': 'string'
-        }
-        'domainUserName': {
-          'type': 'string'
-        }
-        'hostPoolId': {
-          'type': 'string'
-        }
-        'imageId': {
-          'type': 'string'
-        }
-        'localAdminName': {
-          'type': 'string'
-        }
-        'localAdminPassword': {
-          'type': 'secureString'
-        }
-        'ouPath': {
-          'type': 'string'
-        }
-        'subnetName': {
-          'type': 'string'
-        }
-        'vmName': {
-          'type': 'string'
-        }
-        'vnetId': {
-          'type': 'string'
-        }
         'count': {
           'type': 'int'
-        }
-        'vmSize': {
-          'type': 'string'
         }
       }
       'variables': {
@@ -103,39 +66,40 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               'domainJoinPassword': {
                 'reference': {
                   'keyVault': {
-                    'id': '[resourceId(\'Microsoft.KeyVault/vaults\' parameters(\'keyVaultName\'))]'
+                    'id': '[extensionResourceId(format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, ${keyVaultResourceGroup}, \'Microsoft.KeyVault/vaults\', ${keyVaultName})]'
+                    
                   }
                   'secretName': '[variables(\'domainJoinUserSecret\')]'
                 }
               }
               'domainToJoin': {
-                'value': 'erickmoore.com'
+                'value': domainToJoin
               }
               'domainUserName': {
-                'value': '[parameters(\'domainJoinUserName\')]'
+                'value': domainJoinUserName
               }
               'hostPoolId': {
-                'value': '[parameters(\'hostPoolId\')]'
+                'value': hostPoolId
               }
               'imageId': {
-                'value': '[parameters(\'imageId\')]'
+                'value': imageId
               }
               'localAdminName': {
-                'value': '[parameters(\'localAdminName\')]'
+                'value': localAdminName
               }
               'localAdminPassword': {
                 'reference': {
                   'keyVault': {
-                    'id': '[resourceId(\'Microsoft.KeyVault/vaults\' parameters(\'keyVaultName\'))]'
+                    'id': '[extensionResourceId(format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, ${keyVaultResourceGroup}, \'Microsoft.KeyVault/vaults\', ${keyVaultName})]'
                   }
                   'secretName': '[variables(\'localAdminUserSecret\')]'
                 }
               }
               'ouPath': {
-                'value': '[parameters(\'ouPath\')]'
+                'value': ouPath
               }
               'vmName': {
-                'value': '[parameters(\'vmName\')]'
+                'value': vmName
               }
             }
             'template': {
@@ -145,9 +109,6 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                 'vmName': {
                   'type': 'string'
                   'maxLength': 10
-                }
-                'hostPoolId': {
-                  'type': 'string'
                 }
                 'tags': {
                   'type': 'object'
@@ -165,34 +126,12 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   'type': 'int'
                   'defaultValue': 1
                 }
-                'vnetId': {
-                  'type': 'string'
-                }
                 'subnetName': {
                   'type': 'string'
-                }
-                'imageId': {
-                  'type': 'string'
-                }
-                'localAdminName': {
-                  'type': 'string'
-                }
-                'vmSize': {
-                  'type': 'string'
-                  'defaultValue': 'Standard_D2s_v4'
                 }
                 'licenseType': {
                   'type': 'string'
                   'defaultValue': 'Windows_Client'
-                }
-                'domainToJoin': {
-                  'type': 'string'
-                }
-                'domainUserName': {
-                  'type': 'string'
-                }
-                'ouPath': {
-                  'type': 'string'
                 }
                 'installNVidiaGPUDriver': {
                   'type': 'bool'
@@ -206,8 +145,8 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                 }
               }
               'variables': {
-                'hostPoolRg': '[split(parameters(\'hostPoolId\') \'/\')[4]]'
-                'hostPoolName': '[split(parameters(\'hostPoolId\') \'/\')[8]]'
+                'hostPoolRg': '${split(hostPoolId, '/')[4]}'
+                'hostPoolName': '${split(hostPoolId, '/')[8]}'
               }
               'resources': [
                 {
@@ -254,11 +193,11 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                       'adminPassword': '[parameters(\'localAdminPassword\')]'
                     }
                     'hardwareProfile': {
-                      'vmSize': '[parameters(\'vmSize\')]'
+                      'vmSize': vmSize
                     }
                     'storageProfile': {
                       'imageReference': {
-                        'id': '[parameters(\'imageId\')]'
+                        'id': imageId
                       }
                     }
                     'diagnosticsProfile': {
@@ -300,9 +239,9 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     'typeHandlerVersion': '1.3'
                     'autoUpgradeMinorVersion': true
                     'settings': {
-                      'name': '[parameters(\'domainToJoin\')]'
-                      'ouPath': '[parameters(\'ouPath\')]'
-                      'user': '[parameters(\'domainUserName\')]'
+                      'name': domainToJoin
+                      'ouPath': ouPath
+                      'user': domainJoinUserName
                       'restart': true
                       'options': 3
                     }
@@ -356,7 +295,7 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                       'configurationFunction': 'Configuration.ps1\\AddSessionHost'
                       'properties': {
                         'hostPoolName': '[variables(\'hostPoolName\')]'
-                        'registrationInfoToken': '[reference(extensionResourceId(format(\'/subscriptions/{0}/resourceGroups/{1}\' subscription().subscriptionId variables(\'hostPoolRg\')) \'Microsoft.DesktopVirtualization/hostPools\' variables(\'hostPoolName\')) \'2021-01-14-preview\').registrationInfo.token]'
+                        'registrationInfoToken': '[reference(extensionResourceId(format(\'/subscriptions/{0}/resourceGroups/{1}\' subscription().subscriptionId variables(\'hostPoolRg\')) \'Microsoft.DesktopVirtualization/hostPools\' variables(\'hostPoolName\')) \'2021-07-12\').registrationInfo.token]'
                         'aadJoin': '[parameters(\'aadJoin\')]'
                       }
                     }

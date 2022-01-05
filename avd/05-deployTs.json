@@ -5,13 +5,17 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "13080207259471267548"
+      "templateHash": "12654733526494640077"
     }
   },
   "parameters": {
     "keyVaultName": {
       "type": "string",
       "defaultValue": "kv-prod-eus-avdcti7cf2s6"
+    },
+    "kvRg": {
+      "type": "string",
+      "defaultValue": "rg-prod-eus-avdresources"
     },
     "domainJoinUserName": {
       "type": "string"
@@ -74,7 +78,7 @@
           "domainJoinPassword": {
             "reference": {
               "keyVault": {
-                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('kvRg')), 'Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
               },
               "secretName": "[variables('domainJoinUserSecret')]"
             }
@@ -97,7 +101,7 @@
           "localAdminPassword": {
             "reference": {
               "keyVault": {
-                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('kvRg')), 'Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
               },
               "secretName": "[variables('localAdminUserSecret')]"
             }
@@ -122,7 +126,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "12215612010241434412"
+              "templateHash": "8847084262004801533"
             }
           },
           "parameters": {
@@ -200,7 +204,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Network/networkInterfaces",
-              "apiVersion": "2019-07-01",
+              "apiVersion": "2021-05-01",
               "name": "[format('nic-{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[copyIndex()], 1))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -224,7 +228,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Compute/virtualMachines",
-              "apiVersion": "2019-07-01",
+              "apiVersion": "2021-07-01",
               "name": "[format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[copyIndex()], 1))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -274,7 +278,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Compute/virtualMachines/extensions",
-              "apiVersion": "2020-06-01",
+              "apiVersion": "2021-07-01",
               "name": "[format('{0}/JoinDomain', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -306,7 +310,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Compute/virtualMachines/extensions",
-              "apiVersion": "2020-06-01",
+              "apiVersion": "2021-07-01",
               "name": "[format('{0}/AADLoginForWindows', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -326,7 +330,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Compute/virtualMachines/extensions",
-              "apiVersion": "2020-06-01",
+              "apiVersion": "2021-07-01",
               "name": "[format('{0}/AddSessionHost', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -340,7 +344,7 @@
                   "configurationFunction": "Configuration.ps1\\AddSessionHost",
                   "properties": {
                     "hostPoolName": "[variables('hostPoolName')]",
-                    "registrationInfoToken": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('hostPoolRg')), 'Microsoft.DesktopVirtualization/hostPools', variables('hostPoolName')), '2021-01-14-preview').registrationInfo.token]",
+                    "registrationInfoToken": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('hostPoolRg')), 'Microsoft.DesktopVirtualization/hostPools', variables('hostPoolName')), '2021-07-12').registrationInfo.token]",
                     "aadJoin": "[parameters('aadJoin')]"
                   }
                 }
@@ -357,7 +361,7 @@
                 "count": "[length(range(0, parameters('count')))]"
               },
               "type": "Microsoft.Compute/virtualMachines/extensions",
-              "apiVersion": "2020-06-01",
+              "apiVersion": "2021-07-01",
               "name": "[format('{0}/InstallNvidiaGpuDriverWindows', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",

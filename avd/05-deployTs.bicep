@@ -1,6 +1,6 @@
 
 param keyVaultName string = 'kv-prod-eus-avdcti7cf2s6'
-
+param kvRg string = 'rg-prod-eus-avdresources'
 param domainJoinUserName string 
 @secure()
 param domainJoinPassword string
@@ -24,6 +24,7 @@ var localAdminUserSecret = 'avdlocaladminpassword'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: keyVaultName
+  scope: resourceGroup(kvRg)
 }
 
 module sessionBuild 'Modules/sessionhostv2.bicep' = {

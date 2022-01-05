@@ -6,7 +6,7 @@ param templateSpecVersion string = '1.0'
 
 param domainJoinUserName string 
 param domainToJoin string  
-param hostPoolId string
+param hostPoolName string
 param imageId string
 param localAdminName string
 param ouPath string
@@ -17,9 +17,8 @@ param count int
 param vmSize string
 param keyVaultName string
 param keyVaultResourceGroup string
+param hostPoolToken string
 
-var hostPoolRg = split(hostPoolId, '/')[4]
-var hostPoolName = split(hostPoolId, '/')[8]
 
 resource templateSpec 'Microsoft.Resources/templateSpecs@2021-05-01' = {
   name: templateSpecName
@@ -28,11 +27,6 @@ resource templateSpec 'Microsoft.Resources/templateSpecs@2021-05-01' = {
     displayName: templateSpecDisplayName
   }
   tags: tags
-}
-
-resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
-  name: hostPoolName
-  scope: resourceGroup(hostPoolRg)
 }
 
 resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-05-01' = {
@@ -46,6 +40,9 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
       'parameters': {
         'count': {
           'type': 'int'
+        }
+        'hostPoolToken': {
+          'type': 'string'
         }
       }
       'variables': {
@@ -78,8 +75,11 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               'domainUserName': {
                 'value': domainJoinUserName
               }
-              'hostPoolId': {
-                'value': hostPoolId
+              'hostPoolName': {
+                'value': hostPoolName
+              }
+              'hostPoolToken': {
+                'value': '[parameters(\'hostPoolToken\')]'
               }
               'imageId': {
                 'value': imageId
@@ -143,11 +143,14 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                 'domainJoinPassword': {
                   'type': 'secureString'
                 }
+                'hostPoolName': {
+                  'type': 'string'
+                }
+                'hostPoolToken': {
+                  'type': 'string'
+                }
               }
-              'variables': {
-                'hostPoolRg': '${split(hostPoolId, '/')[4]}'
-                'hostPoolName': '${split(hostPoolId, '/')[8]}'
-              }
+              'variables': {}
               'resources': [
                 {
                   'copy': {
@@ -282,7 +285,7 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   }
                   'type': 'Microsoft.Compute/virtualMachines/extensions'
                   'apiVersion': '2020-06-01'
-                  'name': '[format(\'{0}/AddSessionHost\' format(\'{0}-{1}\' parameters(\'vmName\') add(range(0 parameters(\'count\'))[range(0 parameters(\'count\'))[copyIndex()]] 1)))]'
+                  'name': '[format(\'{0}/Microsoft.PowerShell.DSC\' format(\'{0}-{1}\' parameters(\'vmName\') add(range(0 parameters(\'count\'))[range(0 parameters(\'count\'))[copyIndex()]] 1)))]'
                   'location': '[parameters(\'location\')]'
                   'tags': '[parameters(\'tags\')]'
                   'properties': {
@@ -291,11 +294,11 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     'typeHandlerVersion': '2.73'
                     'autoUpgradeMinorVersion': true
                     'settings': {
-                      'modulesUrl': 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_8-16-2021.zip'
+                      'modulesUrl': 'https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip'
                       'configurationFunction': 'Configuration.ps1\\AddSessionHost'
                       'properties': {
-                        'hostPoolName': '[variables(\'hostPoolName\')]'
-                        'registrationInfoToken': '[reference(extensionResourceId(format(\'/subscriptions/{0}/resourceGroups/{1}\' subscription().subscriptionId variables(\'hostPoolRg\')) \'Microsoft.DesktopVirtualization/hostPools\' variables(\'hostPoolName\')) \'2021-07-12\').registrationInfo.token]'
+                        'hostPoolName': hostPoolName
+                        'registrationInfoToken': '[parameters(\'hostPoolToken\')]'
                         'aadJoin': '[parameters(\'aadJoin\')]'
                       }
                     }

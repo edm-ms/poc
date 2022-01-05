@@ -9,6 +9,21 @@ param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 @description('Name for managed identity used for Azure Image Builder')
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
+@description('Name of Key Vault used for AVD deployment secrets')
+@maxLength(18)
+param keyVaultName string                =  'kv-prod-eus-avd'
+
+@description('AAD object ID of security principal to grant Key Vault access')
+param objectId string = '9f27f40c-ae7b-4400-9c90-1b229a456e8b'
+
+param workspaceName string = 'poc'
+param hostPoolName string = 'poc'
+@allowed([
+  'Personal'
+  'Pooled'
+])
+param hostPoolType string = 'Pooled'
+
 @description('Name for Azure Compute Gallery')
 param computeGalleryName string       =  'acg_prod_eus_avd'
 
@@ -52,6 +67,48 @@ resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 // ----------------------------------------
 // Resource Deployments
+
+module keyvault 'Modules/keyvault.bicep' = {
+  scope: avdRg
+  name: 'avdkv-${time}'
+  params: {
+    keyVaultName: keyVaultName
+    objectId: objectId
+    enabledForDiskEncryption: true
+    enabledForTemplateDeployment: true
+    principalType: 'User'
+  }
+}
+module workspace 'Modules/workspace.bicep' = {
+  scope: avdRg
+  name: 'ws${workspaceName}-${time}'
+  params: {
+    name: 'workspace-${workspaceName}'
+    appGroupResourceIds: [
+      applicationGroup.outputs.appGroupResourceId
+    ]
+  }
+}
+
+module hostPool 'Modules/hostPool.bicep' = {
+  scope: avdRg
+  name: 'hp${hostPoolName}-${time}'
+  params: {
+    name: 'hostpool-${hostPoolName}'
+    hostpoolType: hostPoolType
+    startVMOnConnect: true
+  }
+}
+
+module applicationGroup 'Modules/applicationGroup.bicep' = {
+  scope: avdRg
+  name: 'app-${hostPoolName}-${time}'
+  params: {
+    appGroupType: 'Desktop'
+    hostpoolName: hostPool.outputs.hostPoolName
+    name: 'app-${hostPoolName}'
+  }
+}
 
 module vmRole 'Modules/custom-role.bicep' = if (createVmRole == true) {
   name: 'startVmRole-${time}'
@@ -100,7 +157,6 @@ module imageDefinitionTemplate 'Modules/template-image-definition.bicep' = {
     scriptUri: ''
   }
 }
-
 
 module createImageGallery 'Modules/image-gallery.bicep' = {
   scope: avdRg

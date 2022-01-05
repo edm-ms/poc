@@ -1,6 +1,7 @@
 @maxLength(10)
 param vmName string
 param hostPoolId string
+param hostPoolToken string
 param tags object = {}
 param location string = resourceGroup().location
 param aadJoin bool = false
@@ -16,19 +17,19 @@ param domainUserName string
 param ouPath string
 param installNVidiaGPUDriver bool = false
 
+
+var hostPoolName = split(hostPoolId, '/')[8]
+var hostPoolRg = split(hostPoolId, '/')[4]
+
+resource hostPoolEx 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
+  name: hostPoolName
+  scope: resourceGroup(hostPoolRg)
+}
+
 @secure()
 param localAdminPassword string
 @secure()
 param domainJoinPassword string
-
-var hostPoolRg = split(hostPoolId, '/')[4]
-var hostPoolName = split(hostPoolId, '/')[8]
-
-// Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents
-resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
-  name: hostPoolName
-  scope: resourceGroup(hostPoolRg)
-}
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [for i in range(0, count): {
   name: 'nic-${vmName}-${i + 1}'
@@ -134,7 +135,7 @@ resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2021-
 }]
 
 resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2021-07-01' = [for i in range(0, count): {
-  name: '${sessionHost[i].name}/AddSessionHost'
+  name: '${sessionHost[i].name}/Microsoft.PowerShell.DSC'
   location: location
   tags: tags
   properties: {
@@ -143,11 +144,11 @@ resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2021-
     typeHandlerVersion: '2.73'
     autoUpgradeMinorVersion: true
     settings: {
-      modulesUrl: 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_8-16-2021.zip'
+      modulesUrl: 'https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip'
       configurationFunction: 'Configuration.ps1\\AddSessionHost'
       properties: {
-        hostPoolName: hostPoolToken.name
-        registrationInfoToken: hostPoolToken.properties.registrationInfo.token
+        hostPoolName: hostPoolName
+        registrationInfoToken: hostPoolToken
         aadJoin: aadJoin
       }
     }

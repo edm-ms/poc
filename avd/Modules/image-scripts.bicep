@@ -74,4 +74,4 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
 }
 
 output scriptId string = script.id
-output scriptUri string = 'https://${storageAccountName}.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1?${listAccountSas(storageAccountName, '2021-06-01', sasReadProperties).accountSasToken}'
+output scriptUri string = 'https://${storageAccountName}.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1'

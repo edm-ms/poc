@@ -9,6 +9,9 @@ param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 @description('Name for managed identity used for Azure Image Builder')
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
+@description('Subnet resource ID for Image Builder VM')
+param imageBuilderSubnet string
+
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
 param keyVaultName string                =  'kv-prod-eus-avd'
@@ -51,6 +54,7 @@ var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2-office.json'))
   json(loadTextContent('./Parameters/image-20h2.json'))
 ]
+var existingKeyVault = json(loadTextContent('../../avd-keyvault.json'))
 
 // ----------------------------------------
 // Resource Group Deployments
@@ -188,6 +192,12 @@ module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, le
   }
 }]
 
+
+resource existingKv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
+  name: existingKeyVault.keyVaultName
+  scope: resourceGroup(existingKeyVault.keyVaultSubId, existingKeyVault.keyVaultRg)
+}
+
 module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
   name: 'aib${i}-${time}'
@@ -197,5 +207,8 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     imageRegions: imageRegionReplicas
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     scriptUri: vdiOptimizeScript.outputs.scriptUri
+    subnetId: imageBuilderSubnet
+    keyVaultName: existingKv.name
+    certificateName: existingKeyVault.keyVaultCert
   }
 }]

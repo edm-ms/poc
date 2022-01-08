@@ -3,12 +3,28 @@ param scriptUri string
 param imageRegions array
 param imageId string
 param managedIdentityId string
-param subnetId string
+param subnetId string = ''
 
 param keyVaultName string
 param certificateName string
 
 param buildDefinition object
+
+param vnetInject bool
+
+var vnetInjectTrue = {
+  osDiskSizeGB: 128
+  vmSize: 'Standard_D2s_v4'
+  vnetConfig: {
+    subnetId: subnetId
+  }
+}
+
+var vnetInjectFalse = {
+  osDiskSizeGB: 128
+  vmSize: 'Standard_D2s_v4'
+}
+
 
 resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
   name: buildDefinition.name
@@ -76,13 +92,7 @@ resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
         'updateLimit': 45
     }
     ]
-    vmProfile: {
-      osDiskSizeGB: 128
-      vmSize: 'Standard_D2s_v4'
-      vnetConfig: {
-        subnetId: subnetId
-      }
-    }
+    vmProfile: vnetInject ? vnetInjectTrue : vnetInjectFalse
     distribute: [
       {
         type: 'SharedImage'

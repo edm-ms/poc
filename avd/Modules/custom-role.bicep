@@ -14,7 +14,7 @@ resource role 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
     assignableScopes: [
       subscription().id
     ]
-    roleName: '${roleDefinition.Name}-${take(roleId, 5)}'
+    roleName: '${roleDefinition.Name}-${subscription().displayName}'
     description: roleDefinition.Description
   }
 }

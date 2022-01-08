@@ -10,7 +10,7 @@ param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
 @description('Subnet resource ID for Image Builder VM')
-param imageBuilderSubnet string
+param imageBuilderSubnet string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork/subnets/sub-prod-eus-avd'
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
@@ -34,6 +34,9 @@ param imageRegionReplicas array       = [
                                           'EastUs'
                                         ]
 
+@description('Deploy AIB build VM into an existing VNet')
+param vnetInject bool = true
+
 @description('Create custom Start VM on Connect Role')
 param createVmRole bool = true
 
@@ -55,6 +58,8 @@ var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2.json'))
 ]
 var existingKeyVault = json(loadTextContent('../../avd-keyvault.json'))
+var avdVnet = split(imageBuilderSubnet, '/subnets/')[0]
+var avdVnetRg = split(imageBuilderSubnet, '/')[4]
 
 // ----------------------------------------
 // Resource Group Deployments
@@ -114,7 +119,7 @@ module applicationGroup 'Modules/applicationGroup.bicep' = {
   }
 }
 
-module vmRole 'Modules/custom-role.bicep' = if (createVmRole == true) {
+module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   name: 'startVmRole-${time}'
   params: {
     roleDefinition: startVmRoleDef
@@ -139,12 +144,18 @@ module imageBuilderIdentity 'Modules/managedidentity.bicep' = {
 module assignAibRole 'Modules/role-assign.bicep' = if (createAibRole) {
   name: 'assignAib-${time}'
   scope: avdRg
-  dependsOn: [
-    aibRole
-  ]
   params: {
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
     roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
+  }
+}
+
+module assignAibNetworkRoleAssign 'Modules/role-assign.bicep' = if (createAibRole) { 
+  name: 'assignAibNet-${time}'
+  scope: resourceGroup(avdVnetRg)
+  params: {
+    roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
   }
 }
 
@@ -207,8 +218,9 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     imageRegions: imageRegionReplicas
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     scriptUri: vdiOptimizeScript.outputs.scriptUri
-    subnetId: imageBuilderSubnet
     keyVaultName: existingKv.name
     certificateName: existingKeyVault.keyVaultCert
+    subnetId: imageBuilderSubnet
+    vnetInject: vnetInject
   }
 }]

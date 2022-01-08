@@ -146,7 +146,7 @@ module assignAibRole 'Modules/role-assign.bicep' = if (createAibRole) {
   scope: avdRg
   params: {
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
-    roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
+    roleDefinitionId: createAibRole ? split(aibRole.outputs.roleId, '/')[6] : ''
   }
 }
 
@@ -203,7 +203,6 @@ module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, le
   }
 }]
 
-
 resource existingKv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: existingKeyVault.keyVaultName
   scope: resourceGroup(existingKeyVault.keyVaultSubId, existingKeyVault.keyVaultRg)
@@ -218,7 +217,7 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     imageRegions: imageRegionReplicas
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     scriptUri: vdiOptimizeScript.outputs.scriptUri
-    keyVaultName: existingKv.name
+    keyVaultName: keyvault.outputs.keyVaultName
     certificateName: existingKeyVault.keyVaultCert
     subnetId: imageBuilderSubnet
     vnetInject: vnetInject

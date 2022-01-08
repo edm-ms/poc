@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "16085905679339239975"
+      "templateHash": "10573441700370677855"
     }
   },
   "parameters": {
@@ -1138,7 +1138,7 @@
       ]
     },
     {
-      "condition": "[equals(parameters('createVmRole'), true())]",
+      "condition": "[parameters('createVmRole')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('startVmRole-{0}', parameters('time'))]",
@@ -1340,7 +1340,7 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
           },
           "roleDefinitionId": {
-            "value": "[split(reference(subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time'))), '2020-10-01').outputs.roleId.value, '/')[6]]"
+            "value": "[if(parameters('createAibRole'), split(reference(subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time'))), '2020-10-01').outputs.roleId.value, '/')[6], '')]"
           }
         },
         "template": {
@@ -1955,7 +1955,7 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('vdiscript-{0}', parameters('time'))), '2020-10-01').outputs.scriptUri.value]"
           },
           "keyVaultName": {
-            "value": "[variables('existingKeyVault').keyVaultName]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time'))), '2020-10-01').outputs.keyVaultName.value]"
           },
           "certificateName": {
             "value": "[variables('existingKeyVault').keyVaultCert]"
@@ -1974,7 +1974,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "15877682353927931282"
+              "templateHash": "4303329138076864884"
             }
           },
           "parameters": {
@@ -2044,17 +2044,19 @@
                 "customize": [
                   {
                     "type": "PowerShell",
+                    "runAsSystem": true,
+                    "runElevated": true,
                     "inline": [
                       "[format('$vaultUrl = \"https://{0}.vault.azure.net\"', parameters('keyVaultName'))]",
                       "[format('$certName = {0}', parameters('certificateName'))]",
                       "$localPath = \"C:\temp",
-                      "$Response = Invoke-RestMethod -Uri \"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net\" -Method GET -Headers @{Metadata=\"true\"}",
+                      "$Response = Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata=\"true\"}",
                       "$KeyVaultToken = $Response.access_token",
                       "if ((Test-Path -Path $localPath) -eq $false) { New-Item -ItemType Directory -Path $localPath }",
                       "$uri = $vaultUrl + \"/certificates/\" + $certName + \"?api-version=2016-10-01\"",
                       "$cert = Invoke-RestMethod -Uri $uri -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}",
-                      "$cert.cer | New-Item -Type File -Name \"$certName.cer\" -Path $localPath",
-                      "Import-Certificate -FilePath \"$localPath\\$certName.cer\" -CertStoreLocation Cert:\\LocalMachine\\Root\\"
+                      "$cert.cer | New-Item -Type File -Name $certName.cer -Path $localPath",
+                      "Import-Certificate -FilePath $localPath\\$certName.cer -CertStoreLocation Cert:\\LocalMachine\\Root\\"
                     ]
                   },
                   {
@@ -2112,6 +2114,7 @@
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('image{0}-{1}', range(0, length(variables('vdiImages')))[range(0, length(variables('vdiImages')))[copyIndex()]], parameters('time')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('vdiscript-{0}', parameters('time')))]"
       ]
     }

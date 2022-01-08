@@ -10,8 +10,8 @@
         }
     },
     "variables": {
-        "domainJoinUserSecret": "domainjoinpassword",
-        "localAdminUserSecret": "avdlocaladminpassword"
+        "domainJoinUserSecret": "avdDomainJoinPassword",
+        "localAdminUserSecret": "avdLocalAdminPassword"
     },
     "resources": [
         {
@@ -27,7 +27,7 @@
                     "domainJoinPassword": {
                         "reference": {
                             "keyVault": {
-                                "id": "[format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-prod-eus-avdresources', 'Microsoft.KeyVault/vaults', 'kv-prod-eus-avdcti7cf2s6')]"
+                                "id": "[format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-prod-eus-avdresources/Microsoft.KeyVault/vaults/kv-prod-eus-avdcti7cf2s6')]"
                             },
                             "secretName": "[variables('domainJoinUserSecret')]"
                         }
@@ -63,6 +63,9 @@
                     },
                     "vmName": {
                         "value": "poc"
+                    },
+                    "subnetName": {
+                        "value": "sub-prod-eus-avd"
                     }
                 },
                 "template": {
@@ -268,7 +271,7 @@
                             },
                             "dependsOn": [
                                 "[resourceId('Microsoft.Compute/virtualMachines', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
-                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/JoinDomain', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]]], 1))) '/')[0], split(format('{0}/JoinDomain', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]]], 1))) '/')[1])]"
+                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/JoinDomain', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]]], 1))), '/')[0], split(format('{0}/JoinDomain', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]]], 1))), '/')[1])]"
                             ]
                         },
                         {
@@ -279,7 +282,7 @@
                             },
                             "type": "Microsoft.Compute/virtualMachines/extensions",
                             "apiVersion": "2020-06-01",
-                            "name": "[format('{0}/InstallNvidiaGpuDriverWindows' format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
+                            "name": "[format('{0}/InstallNvidiaGpuDriverWindows', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]",
                             "location": "[parameters('location')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -290,7 +293,7 @@
                                 "settings": {}
                             },
                             "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines' format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]"
+                                "[resourceId('Microsoft.Compute/virtualMachines', format('{0}-{1}', parameters('vmName'), add(range(0, parameters('count'))[range(0, parameters('count'))[copyIndex()]], 1)))]"
                             ]
                         }
                     ]

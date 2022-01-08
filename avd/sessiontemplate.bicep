@@ -1,5 +1,5 @@
 param kvName string = 'kv-prod-eus-avdcti7cf2s6'
-param kvRg string = ''
+param kvRg string = 'rg-prod-eus-avdresources'
 
 param vnetId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork'
 param subnetName string = 'sub-prod-eus-avd'

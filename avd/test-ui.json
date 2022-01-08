@@ -1,90 +1,31 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "metadata": {
-    "_generator": {
-      "name": "bicep",
-      "version": "0.4.1124.51302",
-      "templateHash": "15660296782632770980"
-    }
-  },
-  "parameters": {
-    "vnetName": {
-      "type": "string"
-    },
-    "subnetName": {
-      "type": "string"
-    },
-    "vnetRg": {
-      "type": "string"
-    }
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2020-10-01",
-      "name": "test-ddd",
-      "resourceGroup": "[parameters('vnetRg')]",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "subnetName": {
-            "value": "[parameters('subnetName')]"
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+      {
+        "name": "nestedDeployment1",
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2021-04-01",
+        "properties": {
+          "expressionEvaluationOptions": {
+            "scope": "inner"
           },
-          "vnetName": {
-            "value": "[parameters('vnetName')]"
-          },
-          "vnetRg": {
-            "value": "[parameters('vnetRg')]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.4.1124.51302",
-              "templateHash": "8317353773237536127"
-            }
-          },
+          "mode": "Incremental",
           "parameters": {
-            "vnetName": {
-              "type": "string"
-            },
-            "vnetRg": {
-              "type": "string"
-            },
-            "subnetName": {
-              "type": "string"
-            }
+            
           },
-          "resources": [],
-          "outputs": {
-            "vnetId": {
-              "type": "string",
-              "value": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetRg')), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {
             },
-            "vnetRg": {
-              "type": "string",
-              "value": "[split(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetRg')), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '/')[4]]"
-            },
-            "subnetId": {
-              "type": "string",
-              "value": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetRg')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
-            }
+            "variables": {},
+            "resources": [],
+            "outputs": {}
           }
         }
       }
-    }
-  ],
-  "outputs": {
-    "subnetId": {
-      "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetRg')), 'Microsoft.Resources/deployments', 'test-ddd'), '2020-10-01').outputs.subnetId.value]"
-    }
-  }
+    ]
 }

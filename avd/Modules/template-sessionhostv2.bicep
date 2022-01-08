@@ -46,8 +46,8 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
         }
       }
       'variables': {
-        'domainJoinUserSecret': 'domainjoinpassword'
-        'localAdminUserSecret': 'avdlocaladminpassword'
+        'domainJoinUserSecret': 'avdDomainJoinPassword'
+        'localAdminUserSecret': 'avdLocalAdminPassword'
       }
       'resources': [
         {
@@ -63,17 +63,16 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               'domainJoinPassword': {
                 'reference': {
                   'keyVault': {
-                    'id': '[format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, \'${keyVaultResourceGroup}\', \'Microsoft.KeyVault/vaults\', \'${keyVaultName}\')]'
-                    
+                    'id': '[format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, \'${keyVaultResourceGroup}/providers/Microsoft.KeyVault/vaults/${keyVaultName}\')]'
                   }
                   'secretName': '[variables(\'domainJoinUserSecret\')]'
                 }
               }
               'domainToJoin': {
-                'value': '${domainToJoin}'
+                'value': domainToJoin
               }
               'domainUserName': {
-                'value': '${domainJoinUserName}'
+                'value': domainJoinUserName
               }
               'hostPoolName': {
                 'value': hostPoolName
@@ -82,15 +81,15 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                 'value': '[parameters(\'hostPoolToken\')]'
               }
               'imageId': {
-                'value': '${imageId}'
+                'value': imageId
               }
               'localAdminName': {
-                'value': '${localAdminName}'
+                'value': localAdminName
               }
               'localAdminPassword': {
                 'reference': {
                   'keyVault': {
-                    'id': '[format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, \'${keyVaultResourceGroup}\', \'Microsoft.KeyVault/vaults\', \'${keyVaultName}\')]'
+                    'id': '[format(\'/subscriptions/{0}/resourceGroups/{1}\', subscription().subscriptionId, \'${keyVaultResourceGroup}/providers/Microsoft.KeyVault/vaults/${keyVaultName}\')]'
                   }
                   'secretName': '[variables(\'localAdminUserSecret\')]'
                 }
@@ -100,6 +99,9 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               }
               'vmName': {
                 'value': vmName
+              }
+              'subnetName': {
+                  'value': subnetName
               }
             }
             'template': {
@@ -192,15 +194,15 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   'properties': {
                     'osProfile': {
                       'computerName': '[format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[copyIndex()], 1))]'
-                      'adminUsername': '${localAdminName}'
+                      'adminUsername': localAdminName
                       'adminPassword': '[parameters(\'localAdminPassword\')]'
                     }
                     'hardwareProfile': {
-                      'vmSize': '${vmSize}'
+                      'vmSize': vmSize
                     }
                     'storageProfile': {
                       'imageReference': {
-                        'id': '${imageId}'
+                        'id': imageId
                       }
                     }
                     'diagnosticsProfile': {
@@ -221,8 +223,8 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     }
                   }
                   'dependsOn': [
-                    '[resourceId(\'Microsoft.Network/networkInterfaces\', format(\'nic-{0}-{1}\', parameters(\'vmName\') add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
-                    '[resourceId(\'Microsoft.Network/networkInterfaces\', format(\'nic-{0}-{1}\', parameters(\'vmName\') add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
+                    '[resourceId(\'Microsoft.Network/networkInterfaces\', format(\'nic-{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
+                    '[resourceId(\'Microsoft.Network/networkInterfaces\', format(\'nic-{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
                   ]
                 }
                 {
@@ -285,7 +287,7 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   }
                   'type': 'Microsoft.Compute/virtualMachines/extensions'
                   'apiVersion': '2020-06-01'
-                  'name': '[format(\'{0}/Microsoft.PowerShell.DSC\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0 parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
+                  'name': '[format(\'{0}/Microsoft.PowerShell.DSC\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
                   'location': '[parameters(\'location\')]'
                   'tags': '[parameters(\'tags\')]'
                   'properties': {
@@ -304,8 +306,8 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     }
                   }
                   'dependsOn': [
-                    '[resourceId(\'Microsoft.Compute/virtualMachines\', format(\'{0}-{1}\', parameters(\'vmName\') add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
-                    '[resourceId(\'Microsoft.Compute/virtualMachines/extensions\', split(format(\'{0}/JoinDomain\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]]], 1))) \'/\')[0], split(format(\'{0}/JoinDomain\', format(\'{0}-{1}\', parameters(\'vmName\') add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]]], 1))) \'/\')[1])]'
+                    '[resourceId(\'Microsoft.Compute/virtualMachines\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]], 1)))]'
+                    '[resourceId(\'Microsoft.Compute/virtualMachines/extensions\', split(format(\'{0}/JoinDomain\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]]], 1))), \'/\')[0], split(format(\'{0}/JoinDomain\', format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[range(0, parameters(\'count\'))[copyIndex()]]], 1))), \'/\')[1])]'
                   ]
                 }
                 {

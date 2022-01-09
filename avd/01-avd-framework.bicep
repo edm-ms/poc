@@ -10,14 +10,14 @@ param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
 @description('Subnet resource ID for Image Builder VM')
-param imageBuilderSubnet string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork/subnets/sub-prod-eus-avd'
+param imageBuilderSubnet string 
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
 param keyVaultName string                =  'kv-prod-eus-avd'
 
 @description('AAD object ID of security principal to grant Key Vault access')
-param objectId string = '9f27f40c-ae7b-4400-9c90-1b229a456e8b'
+param objectId string 
 
 param workspaceName string = 'poc'
 param hostPoolName string = 'poc'

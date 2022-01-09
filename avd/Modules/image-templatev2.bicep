@@ -47,12 +47,13 @@ resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
     customize: [
       {
         type: 'PowerShell'
+        name: 'Install SSL certificate'
         runAsSystem: true
         runElevated: true
         inline: [
           '$vaultUrl = "https://${keyVaultName}.vault.azure.net"'
           '$certName = ${certificateName}'
-          '$localPath = "C:\temp'
+          '$localPath = "C:\temp"'
 
           '$Response = Invoke-RestMethod -Uri \'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net\' -Method GET -Headers @{Metadata="true"}'
           '$KeyVaultToken = $Response.access_token'

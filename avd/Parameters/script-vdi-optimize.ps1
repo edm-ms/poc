@@ -380,4 +380,6 @@
         }
     #endregion
      
+    Remove-Item $outputPath -Recurse -Force
+    
     ########################  END OF SCRIPT  ########################

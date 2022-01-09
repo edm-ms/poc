@@ -71,7 +71,7 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               'domainToJoin': {
                 'value': domainToJoin
               }
-              'domainUserName': {
+              'domainJoinUserName': {
                 'value': domainJoinUserName
               }
               'hostPoolName': {
@@ -100,6 +100,9 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
               'vmName': {
                 'value': vmName
               }
+              'vmSize': {
+                'value': vmSize
+              }
               'subnetName': {
                   'value': subnetName
               }
@@ -112,9 +115,27 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   'type': 'string'
                   'maxLength': 10
                 }
+                'vmSize': {
+                  'type': 'string'
+                }
                 'tags': {
                   'type': 'object'
                   'defaultValue': {}
+                }
+                'domainToJoin': {
+                  'type': 'string'
+                }
+                'domainJoinUserName': {
+                  'type': 'string'
+                }
+                'imageId': {
+                  'type': 'string'
+                }
+                'localAdminName': {
+                  'type': 'string'
+                }
+                'ouPath': {
+                  'type': 'string'
                 }
                 'location': {
                   'type': 'string'
@@ -184,7 +205,7 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     'count': '[length(range(0, parameters(\'count\')))]'
                   }
                   'type': 'Microsoft.Compute/virtualMachines'
-                  'apiVersion': '2019-07-01'
+                  'apiVersion': '2021-07-01'
                   'name': '[format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[copyIndex()], 1))]'
                   'location': '[parameters(\'location\')]'
                   'tags': '[parameters(\'tags\')]'
@@ -194,15 +215,15 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                   'properties': {
                     'osProfile': {
                       'computerName': '[format(\'{0}-{1}\', parameters(\'vmName\'), add(range(0, parameters(\'count\'))[copyIndex()], 1))]'
-                      'adminUsername': localAdminName
+                      'adminUsername': '[parameters(\'localAdminName\')]'
                       'adminPassword': '[parameters(\'localAdminPassword\')]'
                     }
                     'hardwareProfile': {
-                      'vmSize': vmSize
+                      'vmSize': '[parameters(\'vmSize\')]'
                     }
                     'storageProfile': {
                       'imageReference': {
-                        'id': imageId
+                        'id': '[parameters(\'imageId\')]'
                       }
                     }
                     'diagnosticsProfile': {
@@ -244,9 +265,9 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     'typeHandlerVersion': '1.3'
                     'autoUpgradeMinorVersion': true
                     'settings': {
-                      'name': domainToJoin
-                      'ouPath': ouPath
-                      'user': domainJoinUserName
+                      'name': '[parameters(\'domainToJoin\')]'
+                      'ouPath': '[parameters(\'ouPath\')]'
+                      'user': '[parameters(\'domainJoinUserName\')]'
                       'restart': true
                       'options': 3
                     }
@@ -296,10 +317,10 @@ resource templateSpec_version 'Microsoft.Resources/templateSpecs/versions@2021-0
                     'typeHandlerVersion': '2.73'
                     'autoUpgradeMinorVersion': true
                     'settings': {
-                      'modulesUrl': 'https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip'
+                      'modulesUrl': 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_11-22-2021.zip'
                       'configurationFunction': 'Configuration.ps1\\AddSessionHost'
                       'properties': {
-                        'hostPoolName': hostPoolName
+                        'hostPoolName': '[parameters(\'hostPoolName\')]'
                         'registrationInfoToken': '[parameters(\'hostPoolToken\')]'
                         'aadJoin': '[parameters(\'aadJoin\')]'
                       }

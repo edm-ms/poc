@@ -11,16 +11,16 @@ param templateResourceGroup string    = 'rg-prod-eus-avdtemplates'
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(24)
-param keyVaultName string                =  'kv-prod-eus-avdcti7cf2s6'
+param keyVaultName string                
 
 param hostPoolName string
 param hostPoolToken string
 
-param ouPath string = 'OU=EastUS,OU=AVD,DC=erickmoore,DC=com'
-param imageId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdresources/providers/Microsoft.Compute/galleries/acg_prod_eus_avd/images/Windows10_20H2'
-param subnetName string = 'sub-prod-eus-avd'
-param vnetId string = '/subscriptions/224e7e93-1617-4d5a-95d2-de299b8b8175/resourceGroups/rg-prod-eus-avdnetwork/providers/Microsoft.Network/virtualNetworks/vnet-prod-eus-avdnetwork'
-param domainToJoin string = 'erickmoore.com'
+param ouPath string 
+param imageId string 
+param subnetName string 
+param vnetId string 
+param domainToJoin string
 @maxLength(10)
 param vmName string = 'testpoc'
 
@@ -30,7 +30,7 @@ param vmCount int = 1
 param vmSize string = 'Standard_D2s_v4'
 
 @description('UPN for domain joining AVD systems')
-param domainJoinAccount string         = 'dj@erickmoore.com'
+param domainJoinAccount string         
 
 @description('Password for domain join account')
 @secure()

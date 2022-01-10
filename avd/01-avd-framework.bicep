@@ -10,14 +10,14 @@ param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
 
 @description('Subnet resource ID for Image Builder VM')
-param imageBuilderSubnet string 
+param imageBuilderSubnet string       = '/s/s/s/s/s/s'
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
 param keyVaultName string                =  'kv-prod-eus-avd'
 
 @description('AAD object ID of security principal to grant Key Vault access')
-param objectId string 
+param objectId string = 'guid'
 
 param workspaceName string = 'poc'
 param hostPoolName string = 'poc'
@@ -82,7 +82,7 @@ module keyvault 'Modules/keyvault.bicep' = {
   name: 'avdkv-${time}'
   params: {
     keyVaultName: keyVaultName
-    objectId: objectId
+    objectId: existingKeyVault.objectId
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
     principalType: 'User'
@@ -219,7 +219,7 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     scriptUri: vdiOptimizeScript.outputs.scriptUri
     keyVaultName: keyvault.outputs.keyVaultName
     certificateName: existingKeyVault.keyVaultCert
-    subnetId: imageBuilderSubnet
+    subnetId: existingKeyVault.keyVaultSubId
     vnetInject: vnetInject
   }
 }]

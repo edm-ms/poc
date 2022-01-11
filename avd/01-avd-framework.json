@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "4095526173594810497"
+      "templateHash": "10347975554517963884"
     }
   },
   "parameters": {
@@ -1322,7 +1322,7 @@
         "mode": "Incremental",
         "parameters": {
           "roleDefinitionId": {
-            "value": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', guid(variables('aibRoleDef').Name, subscription().id))]"
+            "value": "[guid(variables('aibRoleDef').Name, subscription().id)]"
           },
           "principalId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"

@@ -114,12 +114,32 @@ module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   }
 }
 
-module aibRole 'Modules/aib-role-assign.bicep' = if (createAibRole) {
+module aibRole 'Modules/custom-role.bicep' = if (createAibRole) {
   name: 'aibRole-${time}'
   params: {
     roleDefinition: aibRoleDef
+  }
+}
+
+module aibRoleAssign 'Modules/role-assign.bicep' = if (createAibRole) {
+  name: 'aibRoleAssign-${time}'
+  scope: avdRg
+  params: {
+    roleDefinitionId: aibRole.outputs.roleId
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
-    resourceGroupName: avdRg.name
+  }
+}
+
+resource aibRoleExisting 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = if (createAibRole == false) {
+  name: '${aibRoleDef.Name}-${subscription().displayName}'
+}
+
+module aibRoleAssignExisting 'Modules/role-assign.bicep' = if (createAibRole == false) {
+  name: 'aibRoleAssignExt-${time}'
+  scope: avdRg
+  params: {
+    roleDefinitionId: split(aibRoleExisting.id, '/')[6]
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
   }
 }
 

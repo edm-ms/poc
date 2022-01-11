@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "7376296771108159286"
+      "templateHash": "8857327101636673803"
     }
   },
   "parameters": {
@@ -111,6 +111,12 @@
       "apiVersion": "2021-04-01",
       "name": "[parameters('avdResourceGroup')]",
       "location": "[deployment().location]"
+    },
+    {
+      "condition": "[equals(parameters('createAibRole'), false())]",
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2018-01-01-preview",
+      "name": "[format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName)]"
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -1136,7 +1142,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "439540213332265032"
+              "templateHash": "12305908223100244772"
             }
           },
           "parameters": {
@@ -1169,6 +1175,10 @@
           "outputs": {
             "roleId": {
               "type": "string",
+              "value": "[split(subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId')), '/')[6]]"
+            },
+            "resourceId": {
+              "type": "string",
               "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId'))]"
             }
           }
@@ -1189,12 +1199,6 @@
         "parameters": {
           "roleDefinition": {
             "value": "[variables('aibRoleDef')]"
-          },
-          "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
-          },
-          "resourceGroupName": {
-            "value": "[parameters('avdResourceGroup')]"
           }
         },
         "template": {
@@ -1204,22 +1208,12 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "1903548187993423648"
+              "templateHash": "12305908223100244772"
             }
           },
           "parameters": {
             "roleDefinition": {
               "type": "object"
-            },
-            "principalId": {
-              "type": "string"
-            },
-            "time": {
-              "type": "string",
-              "defaultValue": "[utcNow()]"
-            },
-            "resourceGroupName": {
-              "type": "string"
             }
           },
           "variables": {
@@ -1242,82 +1236,159 @@
                 "roleName": "[format('{0}-{1}', parameters('roleDefinition').Name, subscription().displayName)]",
                 "description": "[parameters('roleDefinition').Description]"
               }
+            }
+          ],
+          "outputs": {
+            "roleId": {
+              "type": "string",
+              "value": "[split(subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId')), '/')[6]]"
             },
-            {
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2020-10-01",
-              "name": "[format('aibAssign-{0}', parameters('time'))]",
-              "resourceGroup": "[parameters('resourceGroupName')]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "principalId": {
-                    "value": "[parameters('principalId')]"
-                  },
-                  "roleDefinitionId": {
-                    "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId'))]"
-                  },
-                  "resourceGroupName": {
-                    "value": "[parameters('resourceGroupName')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.4.1124.51302",
-                      "templateHash": "15940873198468136225"
-                    }
-                  },
-                  "parameters": {
-                    "principalId": {
-                      "type": "string"
-                    },
-                    "roleDefinitionId": {
-                      "type": "string"
-                    },
-                    "principalType": {
-                      "type": "string",
-                      "defaultValue": "ServicePrincipal",
-                      "allowedValues": [
-                        "User",
-                        "ServicePrincipal",
-                        "Group",
-                        "MSI"
-                      ]
-                    },
-                    "resourceGroupName": {
-                      "type": "string",
-                      "defaultValue": "[resourceGroup().name]"
-                    }
-                  },
-                  "resources": [
-                    {
-                      "type": "Microsoft.Authorization/roleAssignments",
-                      "apiVersion": "2020-08-01-preview",
-                      "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
-                      "properties": {
-                        "principalId": "[parameters('principalId')]",
-                        "roleDefinitionId": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', parameters('roleDefinitionId'))]",
-                        "principalType": "[parameters('principalType')]"
-                      }
-                    }
-                  ]
-                }
-              },
-              "dependsOn": [
-                "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId'))]"
+            "resourceId": {
+              "type": "string",
+              "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('createAibRole')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('aibRoleAssign-{0}', parameters('time'))]",
+      "resourceGroup": "[parameters('avdResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "roleDefinitionId": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time'))), '2020-10-01').outputs.roleId.value]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "15940873198468136225"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "roleDefinitionId": {
+              "type": "string"
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "User",
+                "ServicePrincipal",
+                "Group",
+                "MSI"
               ]
+            },
+            "resourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-08-01-preview",
+              "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', parameters('roleDefinitionId'))]",
+                "principalType": "[parameters('principalType')]"
+              }
             }
           ]
         }
       },
       "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time')))]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('createAibRole'), false())]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('aibRoleAssignExt-{0}', parameters('time'))]",
+      "resourceGroup": "[parameters('avdResourceGroup')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "roleDefinitionId": {
+            "value": "[split(subscriptionResourceId('Microsoft.Authorization/roleDefinitions', format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName)), '/')[6]]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1124.51302",
+              "templateHash": "15940873198468136225"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "roleDefinitionId": {
+              "type": "string"
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "User",
+                "ServicePrincipal",
+                "Group",
+                "MSI"
+              ]
+            },
+            "resourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-08-01-preview",
+              "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', parameters('roleDefinitionId'))]",
+                "principalType": "[parameters('principalType')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName))]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]"
       ]

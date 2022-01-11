@@ -12,6 +12,7 @@
       "Microsoft.Compute/galleries/images/versions/write",
       "Microsoft.Storage/storageAccounts/blobServices/containers/read",
       "Microsoft.Storage/storageAccounts/blobServices/containers/write",
+      "Microsoft.Storage/storageAccounts/blobServices/read",
       "Microsoft.ContainerInstance/containerGroups/read",
       "Microsoft.ContainerInstance/containerGroups/write",
       "Microsoft.ContainerInstance/containerGroups/start/action",

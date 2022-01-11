@@ -51,6 +51,7 @@ var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2-office.json'))
   json(loadTextContent('./Parameters/image-20h2.json'))
 ]
+
 //var avdVnet = split(imageBuilderSubnet, '/subnets/')[0]
 //var avdVnetRg = split(imageBuilderSubnet, '/')[4]
 
@@ -177,6 +178,7 @@ module vdiOptimizeScript 'Modules/image-scripts.bicep' = {
   scope: avdRg
   name: 'vdiscript-${time}'
   params: {
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
     storageAccountName: storageName
   }
 }

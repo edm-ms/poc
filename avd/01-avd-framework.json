@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "8857327101636673803"
+      "templateHash": "11110979750190388749"
     }
   },
   "parameters": {
@@ -98,7 +98,7 @@
   "variables": {
     "defaultImage": "[json('{\r\n    \"name\": \"Windows10_20H2\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"Windows-10\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd\"\r\n}')]",
     "startVmRoleDef": "[json('{\r\n    \"Name\": \"Start VM on connect (Custom)\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Start VM on connect with AVD (Custom)\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/virtualMachines/start/action\",\r\n      \"Microsoft.Compute/virtualMachines/*/read\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
-    "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\",\r\n      \"Microsoft.Network/virtualNetworks/read\",\r\n      \"Microsoft.Network/virtualNetworks/subnets/join/action\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
+    "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\",\r\n      \"Microsoft.Network/virtualNetworks/read\",\r\n      \"Microsoft.Network/virtualNetworks/subnets/join/action\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "storageName": "[format('aibscripts{0}', take(guid(subscription().subscriptionId), 8))]",
     "vdiImages": [
       "[json('{\r\n    \"name\": \"Windows10_20H2_Office\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"office-365\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd-o365pp\"\r\n}')]",
@@ -1709,6 +1709,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
+          },
           "storageAccountName": {
             "value": "[variables('storageName')]"
           }
@@ -1720,7 +1723,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "9368157114569761353"
+              "templateHash": "18130284442161823532"
             }
           },
           "parameters": {
@@ -1738,6 +1741,21 @@
             "scriptUri": {
               "type": "string",
               "defaultValue": "https://raw.githubusercontent.com/edm-ms/poc/main/avd/Bicep/Parameters/script-vdi-optimize.ps1"
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal"
+            },
+            "resourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]"
+            },
+            "principalId": {
+              "type": "string"
+            },
+            "roleDefinitionId": {
+              "type": "string",
+              "defaultValue": "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
             },
             "time": {
               "type": "string",
@@ -1779,6 +1797,20 @@
               ]
             },
             {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', parameters('storageAccountName'))]",
+              "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[parameters('roleDefinitionId')]",
+                "principalType": "[parameters('principalType')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+              ]
+            },
+            {
               "type": "Microsoft.Resources/deploymentScripts",
               "apiVersion": "2020-10-01",
               "name": "[parameters('name')]",
@@ -1802,12 +1834,21 @@
             "scriptUri": {
               "type": "string",
               "value": "[format('https://{0}.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1', parameters('storageAccountName'))]"
+            },
+            "storageId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            },
+            "storageName": {
+              "type": "string",
+              "value": "[parameters('storageAccountName')]"
             }
           }
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]"
       ]
     },
     {

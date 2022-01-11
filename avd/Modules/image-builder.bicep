@@ -8,7 +8,7 @@ param publisher string
 param offer string
 param sku string
 
-resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2020-02-14' = {
+resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2021-10-01' = {
   name: imageName
   location: resourceGroup().location
   identity: {

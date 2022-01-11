@@ -8,7 +8,7 @@ param offer string
 param publisher string
 param sku string
 
-resource imageGallery 'Microsoft.Compute/galleries@2020-09-30' existing = {
+resource imageGallery 'Microsoft.Compute/galleries@2021-07-01' existing = {
   name: imageGalleryName
 }
 

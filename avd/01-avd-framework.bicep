@@ -223,3 +223,11 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     vnetInject: vnetInject
   }
 }]
+
+module buildImage 'Modules/start-image-build.bicep' = {
+  scope: avdRg
+  name: 'buildImages-${time}'
+  params: {
+    imageIds: [for i in range(0, length(vdiImages)): imageBuildDefinitions[i].outputs.aibImageId ]
+  }
+}

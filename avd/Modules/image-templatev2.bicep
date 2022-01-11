@@ -11,7 +11,7 @@ param certificateName string
 param buildDefinition object
 
 param vnetInject bool = false
-param installSslCertificate bool = false
+param installSslCertificate bool = true
 
 var vnetInjectTrue = {
   osDiskSizeGB: 128
@@ -46,6 +46,10 @@ var installSSLcert = [
   'Import-Certificate -FilePath $localPath\\$certName.cer -CertStoreLocation Cert:\\LocalMachine\\Root\\'  
 ]
 
+var doNothing = [
+  'Write-Host "Nothing to install"'
+]
+
 resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2021-10-01' = {
   name: buildDefinition.name
   location: resourceGroup().location
@@ -70,7 +74,7 @@ resource aib 'Microsoft.VirtualMachineImages/imageTemplates@2021-10-01' = {
         name: 'Install SSL certificate'
         runAsSystem: true
         runElevated: true
-        inline: installSslCertificate ? installSSLcert : []
+        inline: installSslCertificate ? installSSLcert : doNothing
       }
       {
         type: 'PowerShell'

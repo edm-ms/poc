@@ -135,7 +135,7 @@ module aibRoleAssignExisting 'Modules/role-assign.bicep' = if (!createAibRole) {
   name: 'aibRoleAssignExt-${time}'
   scope: avdRg
   params: {
-    roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${guid(aibRoleDef.Name, subscription().id)}'
+    roleDefinitionId: guid(aibRoleDef.Name, subscription().id)
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
   }
 }

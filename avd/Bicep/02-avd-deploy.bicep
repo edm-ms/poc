@@ -82,7 +82,7 @@ module vaultSecretLa 'Modules/keyVaultSecret.bicep' = {
   }
 }
 
-module sessionHost 'Modules/sessionhostv2.bicep' = {
+module sessionHost 'Modules/sessionhost.bicep' = {
   scope: sessionHostsRg
   name: 'sh${vmName}-${time}'
   params: {
@@ -106,7 +106,7 @@ module sessionHost 'Modules/sessionhostv2.bicep' = {
 resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: templateResourceGroup
 }
-module tsSessionHost 'Modules/template-sessionhostv2.bicep' = {
+module tsSessionHost 'Modules/template-sessionhost.bicep' = {
   scope: tsRg
   name: 'sessionHts-${time}'
   params: {

@@ -6,12 +6,12 @@ param managedIdentityId string
 param subnetId string = ''
 
 param keyVaultName string
-param certificateName string
+param certificateName string = ''
 
 param buildDefinition object
 
 param vnetInject bool = false
-param installSslCertificate bool = true
+param installSslCertificate bool = false
 
 var vnetInjectTrue = {
   osDiskSizeGB: 128

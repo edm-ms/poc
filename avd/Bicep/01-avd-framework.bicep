@@ -1,23 +1,17 @@
 targetScope                           = 'subscription'
 
-@description('Name of resource group to create Template Spec')
-param templateResourceGroup string    = 'rg-prod-eus-avdtemplates'
-
-@description('Name of resource group to hold HostPools, Application Groups, and Workspaces')
+@description('Name of resource group to hold Templates, HostPools, Application Groups, and Workspaces')
 param avdResourceGroup string         = 'rg-prod-eus-avdresources'
 
 @description('Name for managed identity used for Azure Image Builder')
 param managedIdentityName string      =  'uai-prod-eus-imagebuilder'
-
-@description('Subnet resource ID for Image Builder VM')
-param imageBuilderSubnet string       = '/s/s/s/s/s/s'
 
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(18)
 param keyVaultName string                =  'kv-prod-eus-avd'
 
 @description('AAD object ID of security principal to grant Key Vault access')
-param objectId string = 'guid'
+param objectId string 
 
 param workspaceName string = 'poc'
 param hostPoolName string = 'poc'
@@ -35,7 +29,7 @@ param imageRegionReplicas array       = [
                                         ]
 
 @description('Deploy AIB build VM into an existing VNet')
-param vnetInject bool = true
+param vnetInject bool = false
 
 @description('Create custom Start VM on Connect Role')
 param createVmRole bool = true
@@ -50,24 +44,18 @@ param time string = utcNow()
 // Variable declaration
 
 var defaultImage = json(loadTextContent('./Parameters/image-20h2.json'))
-var startVmRoleDef = json(loadTextContent('./Parameters/start-vm-role.json'))
-var aibRoleDef = json(loadTextContent('./Parameters/aib-role.json'))
+var startVmRoleDef = json(loadTextContent('./Parameters/role-startvm.json'))
+var aibRoleDef = json(loadTextContent('./Parameters/role-aib.json'))
 var storageName =  'aibscripts${take(guid(subscription().subscriptionId), 8)}'
 var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2-office.json'))
   json(loadTextContent('./Parameters/image-20h2.json'))
 ]
-var existingKeyVault = json(loadTextContent('../../avd-keyvault.json'))
-var avdVnet = split(imageBuilderSubnet, '/subnets/')[0]
-var avdVnetRg = split(imageBuilderSubnet, '/')[4]
+//var avdVnet = split(imageBuilderSubnet, '/subnets/')[0]
+//var avdVnetRg = split(imageBuilderSubnet, '/')[4]
 
 // ----------------------------------------
 // Resource Group Deployments
-
-resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: templateResourceGroup
-  location: deployment().location
-}
 
 resource avdRg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: avdResourceGroup
@@ -82,7 +70,7 @@ module keyvault 'Modules/keyvault.bicep' = {
   name: 'avdkv-${time}'
   params: {
     keyVaultName: keyVaultName
-    objectId: existingKeyVault.objectId
+    objectId: objectId
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
     principalType: 'User'
@@ -126,10 +114,12 @@ module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   }
 }
 
-module aibRole 'Modules/custom-role.bicep' = if (createAibRole) {
+module aibRole 'Modules/aib-role-assign.bicep' = if (createAibRole) {
   name: 'aibRole-${time}'
   params: {
     roleDefinition: aibRoleDef
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
+    resourceGroupName: avdRg.name
   }
 }
 
@@ -141,26 +131,8 @@ module imageBuilderIdentity 'Modules/managedidentity.bicep' = {
   }
 }
 
-module assignAibRole 'Modules/role-assign.bicep' = if (createAibRole) {
-  name: 'assignAib-${time}'
-  scope: avdRg
-  params: {
-    principalId: imageBuilderIdentity.outputs.identityPrincipalId
-    roleDefinitionId: createAibRole ? split(aibRole.outputs.roleId, '/')[6] : ''
-  }
-}
-
-module assignAibNetworkRoleAssign 'Modules/role-assign.bicep' = if (createAibRole) { 
-  name: 'assignAibNet-${time}'
-  scope: resourceGroup(avdVnetRg)
-  params: {
-    roleDefinitionId: split(aibRole.outputs.roleId, '/')[6]
-    principalId: imageBuilderIdentity.outputs.identityPrincipalId
-  }
-}
-
 module imageDefinitionTemplate 'Modules/template-image-definition.bicep' = {
-  scope: tsRg
+  scope: avdRg
   name: 'imageSpec-${time}'
   params: {
     templateSpecDisplayName: 'Image Builder Definition'
@@ -203,12 +175,7 @@ module imageDefinitions 'Modules/image-definition.bicep' = [for i in range(0, le
   }
 }]
 
-resource existingKv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: existingKeyVault.keyVaultName
-  scope: resourceGroup(existingKeyVault.keyVaultSubId, existingKeyVault.keyVaultRg)
-}
-
-module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(0, length(vdiImages)): {
+module imageBuildDefinitions 'Modules/image-template.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
   name: 'aib${i}-${time}'
   params: {
@@ -218,16 +185,15 @@ module imageBuildDefinitions 'Modules/image-templatev2.bicep' = [for i in range(
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     scriptUri: vdiOptimizeScript.outputs.scriptUri
     keyVaultName: keyvault.outputs.keyVaultName
-    certificateName: existingKeyVault.keyVaultCert
-    subnetId: existingKeyVault.keyVaultSubId
     vnetInject: vnetInject
   }
 }]
-
-module buildImage 'Modules/start-image-build.bicep' = {
+module buildImages 'Modules/start-image-build.bicep' = [for i in range(0, length(vdiImages)): {
   scope: avdRg
-  name: 'buildImages-${time}'
+  name: 'buildImage${i}-${time}'
   params: {
-    imageIds: [for i in range(0, length(vdiImages)): imageBuildDefinitions[i].outputs.aibImageId ]
+    name: 'build-${vdiImages[i].name}'
+    imageId: imageBuildDefinitions[i].outputs.aibImageId
+    identityId: imageBuilderIdentity.outputs.identityResourceId
   }
-}
+}]

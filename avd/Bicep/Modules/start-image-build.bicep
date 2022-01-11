@@ -1,29 +1,32 @@
-param name string = 'startImageBuilds'
+param name string
 param location string = resourceGroup().location
-param imageIds array
+param imageId string
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
-
-var images = '\'${imageIds}\''
+param identityId string
 
 resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: name
   location: location
   kind: 'AzurePowerShell'
+  identity: {
+    userAssignedIdentities: {
+      '${identityId}': {}
+    }
+    type: 'UserAssigned'
+  }
   properties: {
     azPowerShellVersion: '6.0'
     retentionInterval: 'P1D'
     forceUpdateTag: time
     timeout: 'PT15M'
-    arguments: '-imageIds \'${images}\''
+    arguments: '-imageId ${imageId}'
     scriptContent: '''
       param(
-        [string] [Parameter(Mandatory=$true)] $imageIds
+        [string] [Parameter(Mandatory=$true)] $imageId
         )
 
-      $imageIds = $imageIds | ConvertFrom-Json
-      foreach ($image in $imageIds) { Invoke-AzResourceAction -ResourceId $image -ApiVersion "2021-10-01" -Action Run -Force }
+      Invoke-AzResourceAction -ResourceId $imageId -ApiVersion "2021-10-01" -Action Run -Force
       
     '''
   }
 }
-

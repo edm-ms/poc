@@ -1,5 +1,0 @@
-
-
-@secure()
-param testsecret string
-

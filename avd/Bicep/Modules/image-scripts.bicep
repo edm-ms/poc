@@ -1,20 +1,11 @@
 param name string = 'uploadVdiOptimizerScript'
 param location string = resourceGroup().location
 param storageAccountName string
-param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/em-initial/avd/Parameters/script-vdi-optimize.ps1'
+param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/main/avd/Parameters/script-vdi-optimize.ps1'
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var oneHour = dateTimeAdd(time, 'PT1H')
-var oneYear = dateTimeAdd(time, 'P1Y')
 
-var sasReadProperties = {
-  canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
-  signedProtocol: 'https'
-  signedServices: 'b'
-  signedPermission: 'lr'
-  signedExpiry: oneYear
-  signedResourceTypes: 'co'
-}
 var sasWriteProperties = {
   canonicalizedResource: '/blob/${storageAccountName}/aibscripts'
   signedProtocol: 'https'

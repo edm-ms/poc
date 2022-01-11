@@ -1,7 +1,7 @@
 param name string = 'uploadVdiOptimizerScript'
 param location string = resourceGroup().location
 param storageAccountName string
-param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/main/avd/Parameters/script-vdi-optimize.ps1'
+param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/main/avd/Bicep/Parameters/script-vdi-optimize.ps1'
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var oneHour = dateTimeAdd(time, 'PT1H')

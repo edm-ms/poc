@@ -28,5 +28,6 @@ module assignAibRole 'role-assign.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: role.id
+    resourceGroupName: resourceGroupName
   }
 }

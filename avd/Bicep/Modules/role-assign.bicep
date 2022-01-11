@@ -7,9 +7,10 @@ param roleDefinitionId string
   'MSI'
 ])
 param principalType string = 'ServicePrincipal'
+param resourceGroupName string = resourceGroup().name
 
 resource roleAssign 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(principalId, roleDefinitionId, resourceGroup().name)
+  name: guid(principalId, roleDefinitionId, resourceGroupName)
   properties: {
     principalId: principalId
     roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${roleDefinitionId}'

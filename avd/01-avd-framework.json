@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "11110979750190388749"
+      "templateHash": "4095526173594810497"
     }
   },
   "parameters": {
@@ -66,13 +66,6 @@
         "EastUs"
       ]
     },
-    "vnetInject": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Deploy AIB build VM into an existing VNet"
-      }
-    },
     "createVmRole": {
       "type": "bool",
       "defaultValue": true,
@@ -98,7 +91,7 @@
   "variables": {
     "defaultImage": "[json('{\r\n    \"name\": \"Windows10_20H2\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"Windows-10\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd\"\r\n}')]",
     "startVmRoleDef": "[json('{\r\n    \"Name\": \"Start VM on connect (Custom)\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Start VM on connect with AVD (Custom)\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/virtualMachines/start/action\",\r\n      \"Microsoft.Compute/virtualMachines/*/read\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
-    "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\",\r\n      \"Microsoft.Network/virtualNetworks/read\",\r\n      \"Microsoft.Network/virtualNetworks/subnets/join/action\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
+    "aibRoleDef": "[json('{\r\n    \"Name\": \"Azure Image Builder\",\r\n    \"IsCustom\": true,\r\n    \"Description\": \"Azure Image Builder\",\r\n    \"Actions\": [\r\n      \"Microsoft.Compute/images/write\",\r\n      \"Microsoft.Compute/images/read\",\r\n      \"Microsoft.Compute/images/delete\",\r\n      \"Microsoft.Compute/galleries/read\",\r\n      \"Microsoft.Compute/galleries/images/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/read\",\r\n      \"Microsoft.Compute/galleries/images/versions/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/read\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/containers/write\",\r\n      \"Microsoft.Storage/storageAccounts/blobServices/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/read\",\r\n      \"Microsoft.ContainerInstance/containerGroups/write\",\r\n      \"Microsoft.ContainerInstance/containerGroups/start/action\",\r\n      \"Microsoft.ManagedIdentity/userAssignedIdentities/*/read\",\r\n      \"Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action\",\r\n      \"Microsoft.Authorization/*/read\",\r\n      \"Microsoft.Resources/deployments/read\",\r\n      \"Microsoft.Resources/deploymentScripts/read\",\r\n      \"Microsoft.Resources/deploymentScripts/write\",\r\n      \"Microsoft.VirtualMachineImages/imageTemplates/run/action\",\r\n      \"Microsoft.Network/virtualNetworks/read\",\r\n      \"Microsoft.Network/virtualNetworks/subnets/join/action\"\r\n    ],\r\n    \"NotActions\": [],\r\n    \"DataActions\": [],\r\n    \"NotDataActions\": [],\r\n    \"AssignableScopes\": [\r\n      \r\n    ]\r\n  }')]",
     "storageName": "[format('aibscripts{0}', take(guid(subscription().subscriptionId), 8))]",
     "vdiImages": [
       "[json('{\r\n    \"name\": \"Windows10_20H2_Office\",\r\n    \"osType\": \"Windows\",\r\n    \"osState\": \"Generalized\",\r\n    \"offer\": \"office-365\",\r\n    \"publisher\": \"MicrosoftWindowsDesktop\",\r\n    \"sku\": \"20h2-evd-o365pp\"\r\n}')]",
@@ -111,12 +104,6 @@
       "apiVersion": "2021-04-01",
       "name": "[parameters('avdResourceGroup')]",
       "location": "[deployment().location]"
-    },
-    {
-      "condition": "[equals(parameters('createAibRole'), false())]",
-      "type": "Microsoft.Authorization/roleDefinitions",
-      "apiVersion": "2018-01-01-preview",
-      "name": "[format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName)]"
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -1264,7 +1251,7 @@
         "mode": "Incremental",
         "parameters": {
           "roleDefinitionId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time'))), '2020-10-01').outputs.roleId.value]"
+            "value": "[if(parameters('createAibRole'), reference(subscriptionResourceId('Microsoft.Resources/deployments', format('aibRole-{0}', parameters('time'))), '2020-10-01').outputs.roleId.value, '')]"
           },
           "principalId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
@@ -1323,7 +1310,7 @@
       ]
     },
     {
-      "condition": "[equals(parameters('createAibRole'), false())]",
+      "condition": "[not(parameters('createAibRole'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('aibRoleAssignExt-{0}', parameters('time'))]",
@@ -1335,7 +1322,7 @@
         "mode": "Incremental",
         "parameters": {
           "roleDefinitionId": {
-            "value": "[split(subscriptionResourceId('Microsoft.Authorization/roleDefinitions', format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName)), '/')[6]]"
+            "value": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', guid(variables('aibRoleDef').Name, subscription().id))]"
           },
           "principalId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time'))), '2020-10-01').outputs.identityPrincipalId.value]"
@@ -1388,7 +1375,6 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', format('{0}-{1}', variables('aibRoleDef').Name, subscription().displayName))]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('avdResourceGroup'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('identity-{0}', parameters('time')))]"
       ]
@@ -1723,7 +1709,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "18130284442161823532"
+              "templateHash": "17196537892082727355"
             }
           },
           "parameters": {
@@ -1798,12 +1784,12 @@
             },
             {
               "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2020-10-01-preview",
+              "apiVersion": "2020-08-01-preview",
               "scope": "[format('Microsoft.Storage/storageAccounts/{0}', parameters('storageAccountName'))]",
               "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
               "properties": {
                 "principalId": "[parameters('principalId')]",
-                "roleDefinitionId": "[parameters('roleDefinitionId')]",
+                "roleDefinitionId": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', parameters('roleDefinitionId'))]",
                 "principalType": "[parameters('principalType')]"
               },
               "dependsOn": [
@@ -1987,9 +1973,6 @@
           },
           "keyVaultName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('avdResourceGroup')), 'Microsoft.Resources/deployments', format('avdkv-{0}', parameters('time'))), '2020-10-01').outputs.keyVaultName.value]"
-          },
-          "vnetInject": {
-            "value": "[parameters('vnetInject')]"
           }
         },
         "template": {

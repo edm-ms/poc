@@ -40,12 +40,12 @@ resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/contai
   ]
 }
 
-resource roleAssign 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource roleAssign 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
   name: guid(principalId, roleDefinitionId, resourceGroupName)
   scope: storage
   properties: {
     principalId: principalId
-    roleDefinitionId: roleDefinitionId
+    roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${roleDefinitionId}'
     principalType: principalType
   }
 }

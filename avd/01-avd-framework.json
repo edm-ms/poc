@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "12707849590758720001"
+      "templateHash": "7376296771108159286"
     }
   },
   "parameters": {
@@ -1204,7 +1204,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "6278669135668152492"
+              "templateHash": "1903548187993423648"
             }
           },
           "parameters": {
@@ -1259,6 +1259,9 @@
                   },
                   "roleDefinitionId": {
                     "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleId'))]"
+                  },
+                  "resourceGroupName": {
+                    "value": "[parameters('resourceGroupName')]"
                   }
                 },
                 "template": {
@@ -1268,7 +1271,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.4.1124.51302",
-                      "templateHash": "5027968408112898382"
+                      "templateHash": "15940873198468136225"
                     }
                   },
                   "parameters": {
@@ -1287,13 +1290,17 @@
                         "Group",
                         "MSI"
                       ]
+                    },
+                    "resourceGroupName": {
+                      "type": "string",
+                      "defaultValue": "[resourceGroup().name]"
                     }
                   },
                   "resources": [
                     {
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2020-08-01-preview",
-                      "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), resourceGroup().name)]",
+                      "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('resourceGroupName'))]",
                       "properties": {
                         "principalId": "[parameters('principalId')]",
                         "roleDefinitionId": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', parameters('roleDefinitionId'))]",
@@ -1642,7 +1649,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1124.51302",
-              "templateHash": "12774350088560815531"
+              "templateHash": "9368157114569761353"
             }
           },
           "parameters": {
@@ -1659,7 +1666,7 @@
             },
             "scriptUri": {
               "type": "string",
-              "defaultValue": "https://raw.githubusercontent.com/edm-ms/poc/main/avd/Parameters/script-vdi-optimize.ps1"
+              "defaultValue": "https://raw.githubusercontent.com/edm-ms/poc/main/avd/Bicep/Parameters/script-vdi-optimize.ps1"
             },
             "time": {
               "type": "string",

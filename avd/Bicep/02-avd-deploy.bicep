@@ -6,9 +6,6 @@ param avdResourceGroup string      = 'rg-prod-eus-avdresources'
 @description('Name of resource group to hold Virtual Machines')
 param sessionHostRg string      = 'rg-prod-eus-avdresources'
 
-@description('Name of resource group to create Template Spec')
-param templateResourceGroup string    = 'rg-prod-eus-avdtemplates'
-
 @description('Name of Key Vault used for AVD deployment secrets')
 @maxLength(24)
 param keyVaultName string                
@@ -103,11 +100,8 @@ module sessionHost 'Modules/sessionhost.bicep' = {
   }
 }
 
-resource tsRg 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
-  name: templateResourceGroup
-}
 module tsSessionHost 'Modules/template-sessionhost.bicep' = {
-  scope: tsRg
+  scope: avdRg
   name: 'sessionHts-${time}'
   params: {
     subnetName: subnetName
@@ -119,12 +113,12 @@ module tsSessionHost 'Modules/template-sessionhost.bicep' = {
     hostPoolName: hostPoolName
     hostPoolToken: hostPoolToken
     domainJoinUserName: domainJoinAccount
-    templateSpecDisplayName: '${hostPoolName}-SessionHost'
+    templateSpecDisplayName: 'SessionHost-${hostPoolName}'
     domainToJoin: domainToJoin
     vmName: vmName
     ouPath: ouPath
     localAdminName: localAdminAccount 
-    templateSpecName: '${hostPoolName}-SessionHost'
+    templateSpecName: 'SessionHost-${hostPoolName}'
     vnetId: vnetId
   }
 }

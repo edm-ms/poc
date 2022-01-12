@@ -60,7 +60,7 @@ var roleIdMapping = {
 }
 
 var kvUniqueLength = 24 - length(keyVaultName)
-var kvUniqueName = '${keyVaultName}${take(uniqueString(keyVaultName),kvUniqueLength)}'
+var kvUniqueName = '${keyVaultName}${take(uniqueString(keyVaultName, resourceGroup().id),kvUniqueLength)}'
 
 resource kv 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
   name: kvUniqueName

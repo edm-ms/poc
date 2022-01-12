@@ -19,4 +19,5 @@ resource role 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   }
 }
 
-output roleId string = role.id
+output roleId string = split(role.id, '/')[6]
+output resourceId string = role.id

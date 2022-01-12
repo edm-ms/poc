@@ -1,7 +1,12 @@
 param name string = 'uploadVdiOptimizerScript'
 param location string = resourceGroup().location
 param storageAccountName string
-param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/main/avd/Parameters/script-vdi-optimize.ps1'
+param scriptUri string = 'https://raw.githubusercontent.com/edm-ms/poc/main/avd/Bicep/Parameters/script-vdi-optimize.ps1'
+param principalType string = 'ServicePrincipal'
+param resourceGroupName string = resourceGroup().name
+param principalId string
+param roleDefinitionId string = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+
 param time string = utcNow('yyyy-MM-ddTHH:mm:ssZ')
 
 var oneHour = dateTimeAdd(time, 'PT1H')
@@ -35,6 +40,16 @@ resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/contai
   ]
 }
 
+resource roleAssign 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid(principalId, roleDefinitionId, resourceGroupName)
+  scope: storage
+  properties: {
+    principalId: principalId
+    roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${roleDefinitionId}'
+    principalType: principalType
+  }
+}
+
 resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: name
   location: location
@@ -66,3 +81,5 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
 
 output scriptId string = script.id
 output scriptUri string = 'https://${storageAccountName}.blob.core.windows.net/aibscripts/script-vdi-optimize.ps1'
+output storageId string = storage.id
+output storageName string = storage.name

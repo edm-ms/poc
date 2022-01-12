@@ -28,8 +28,8 @@ param imageRegionReplicas array       = [
                                           'EastUs'
                                         ]
 
-@description('Deploy AIB build VM into an existing VNet')
-param vnetInject bool = false
+//@description('Deploy AIB build VM into an existing VNet')
+//param vnetInject bool = false
 
 @description('Create custom Start VM on Connect Role')
 param createVmRole bool = true
@@ -51,6 +51,7 @@ var vdiImages = [
   json(loadTextContent('./Parameters/image-20h2-office.json'))
   json(loadTextContent('./Parameters/image-20h2.json'))
 ]
+
 //var avdVnet = split(imageBuilderSubnet, '/subnets/')[0]
 //var avdVnetRg = split(imageBuilderSubnet, '/')[4]
 
@@ -114,12 +115,28 @@ module vmRole 'Modules/custom-role.bicep' = if (createVmRole) {
   }
 }
 
-module aibRole 'Modules/aib-role-assign.bicep' = if (createAibRole) {
+module aibRole 'Modules/custom-role.bicep' = if (createAibRole) {
   name: 'aibRole-${time}'
   params: {
     roleDefinition: aibRoleDef
+  }
+}
+
+module aibRoleAssign 'Modules/role-assign.bicep' = if (createAibRole) {
+  name: 'aibRoleAssign-${time}'
+  scope: avdRg
+  params: {
+    roleDefinitionId: createAibRole ? aibRole.outputs.roleId : ''
     principalId: imageBuilderIdentity.outputs.identityPrincipalId
-    resourceGroupName: avdRg.name
+  }
+}
+
+module aibRoleAssignExisting 'Modules/role-assign.bicep' = if (!createAibRole) {
+  name: 'aibRoleAssignExt-${time}'
+  scope: avdRg
+  params: {
+    roleDefinitionId: guid(aibRoleDef.Name, subscription().id)
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
   }
 }
 
@@ -157,6 +174,7 @@ module vdiOptimizeScript 'Modules/image-scripts.bicep' = {
   scope: avdRg
   name: 'vdiscript-${time}'
   params: {
+    principalId: imageBuilderIdentity.outputs.identityPrincipalId
     storageAccountName: storageName
   }
 }
@@ -185,7 +203,6 @@ module imageBuildDefinitions 'Modules/image-template.bicep' = [for i in range(0,
     managedIdentityId: imageBuilderIdentity.outputs.identityResourceId
     scriptUri: vdiOptimizeScript.outputs.scriptUri
     keyVaultName: keyvault.outputs.keyVaultName
-    vnetInject: vnetInject
   }
 }]
 module buildImages 'Modules/start-image-build.bicep' = [for i in range(0, length(vdiImages)): {

@@ -4,7 +4,7 @@ var prosimoAppRole = json(loadTextContent('../Parameters/app-role.json'))
 var prosimoInfraRole = json(loadTextContent('../Parameters/infra-role.json'))
 
 resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: prosimoAppRole.properties.roleName
+  name: guid(prosimoAppRole.properties.roleName, managementGroup().id, tenant().tenantId)
   properties: {
     permissions: prosimoAppRole.properties.permissions
     assignableScopes: [
@@ -16,7 +16,7 @@ resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-p
 }
 
 resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: prosimoInfraRole.properties.roleName
+  name: guid(prosimoInfraRole.properties.roleName, managementGroup().id, tenant().tenantId)
   properties: {
     permissions: prosimoInfraRole.properties.permissions
     assignableScopes: [

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "1199759414457281497"
+      "templateHash": "2500931542050536537"
     }
   },
   "variables": {
@@ -16,7 +16,7 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[variables('prosimoAppRole').properties.roleName]",
+      "name": "[guid(variables('prosimoAppRole').properties.roleName, subscription().subscriptionId)]",
       "properties": {
         "permissions": "[variables('prosimoAppRole').properties.permissions]",
         "assignableScopes": [
@@ -29,7 +29,7 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[variables('prosimoInfraRole').properties.roleName]",
+      "name": "[guid(variables('prosimoInfraRole').properties.roleName, subscription().subscriptionId)]",
       "properties": {
         "permissions": "[variables('prosimoInfraRole').properties.permissions]",
         "assignableScopes": [

@@ -1,4 +1,4 @@
-## Templates to create custom roles for Prosimo App and Infra deployments following the principal of least privelege.
+## Templates to create custom roles for Prosimo App and Infra deployments following the principal of least privilege.
 
 | Role Location | Deploy |
  --- | ---

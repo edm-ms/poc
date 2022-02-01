@@ -10,6 +10,18 @@
                     "label": "Basics",
                     "elements": [
                         {
+                            "name": "deploymentDetailsText",
+                            "type": "Microsoft.Common.TextBlock",
+                            "visible": true,
+                            "options": {
+                                "text": "Select the management group where the custom roles will be created and access will be scoped.",
+                                "link": {
+                                    "label": "",
+                                    "uri": ""
+                                }
+                            }
+                        },   
+                        {
                             "name": "resourceScope",
                             "type": "Microsoft.Common.ResourceScope"
                         },
@@ -19,18 +31,7 @@
                             "type": "Microsoft.Common.Section",
                             "visible": true,
                             "elements": [
-                                {
-                                    "name": "deploymentDetailsText",
-                                    "type": "Microsoft.Common.TextBlock",
-                                    "visible": true,
-                                    "options": {
-                                        "text": "Select the management group where the custom roles will be created and access will be scoped.",
-                                        "link": {
-                                            "label": "",
-                                            "uri": ""
-                                        }
-                                    }
-                                },                           
+                        
                                 {
                                     "name": "infoBoxPrerequisites",
                                     "type": "Microsoft.Common.InfoBox",

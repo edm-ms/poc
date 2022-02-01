@@ -20,7 +20,7 @@
                                     "type": "Microsoft.Common.TextBlock",
                                     "visible": true,
                                     "options": {
-                                        "text": "Select the subscription and resource group as well as the location to specify the scope of your Data Product deployment.",
+                                        "text": "Select the management group where the custom roles will be created and access will be scoped.",
                                         "link": {
                                             "label": "",
                                             "uri": ""
@@ -57,7 +57,7 @@
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified subscription scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
+                                        "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
                                         "style": "Info",
                                         "uri": "https://help.prosimo.io/hc/en-us/articles/360047151112"
                                     }
@@ -81,9 +81,7 @@
                                         "name": "(New) default App Id"
                                     },
                                     "constraints": {
-                                        "required": true,
-                                        "regex": "^[a-zA-Z0-9]{8,}$",
-                                        "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters"
+                                        "required": true
                                     },
                                     "options": {
                                         "hideCertificate": false

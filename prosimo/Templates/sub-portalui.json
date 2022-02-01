@@ -95,13 +95,13 @@
                         }
                     ]
                 }
-            ],
-            "outputs": {
-                "parameters": {
-                    "axiPrincipal": "[steps('deploymentDetails').ServicePrincipal]"
-                },
-                "kind": "ResourceGroup"
-            }
-        }
+            ]
+        },
+        "outputs": {
+            "parameters": {
+                "axiPrincipal": "[steps('deploymentDetails').ServicePrincipal]"
+            },
+            "kind": "ResourceGroup"
+        }        
     }
 }

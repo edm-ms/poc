@@ -77,10 +77,11 @@
         "outputs": {
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal]",
-                "managementGroupId": "[steps('basics').resourceScope.managementGroup.GroupId]"
+                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
             },
             "kind": "Tenant",
-            "location": "[steps('basics').resourceScope.location.name]"
+            "location": "[steps('basics').resourceScope.location.name]",
+            "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
         }        
     }
 }

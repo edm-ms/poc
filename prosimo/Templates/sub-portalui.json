@@ -10,10 +10,6 @@
                     "label": "Basics",
                     "elements": [
                         {
-                            "name": "resourceScope",
-                            "type": "Microsoft.Common.ResourceScope"
-                        },
-                        {
                             "name": "deploymentDetails",
                             "label": "Deployment Details",
                             "type": "Microsoft.Common.Section",
@@ -32,13 +28,38 @@
                                     }
                                 },
                                 {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionId",
+                                    "label": "Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription of your Data Landing Zone.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },                                
+                                {
                                     "name": "infoBoxPrerequisites",
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "Please make sure that you have a Data Management Landing Zone and Data Landing Zone deployed before deploying a Data Product or Data Integration template.",
-                                        "style": "Warning",
-                                        "uri": "https://github.com/Azure/data-management-zone"
+                                        "text": "This deployment will create 2 service principals that will be used by Prosimo to scale your edge locations.",
+                                        "style": "Info",
+                                        "uri": ""
                                     }
                                 },
                                 {
@@ -68,58 +89,18 @@
                                         "hideCertificate": false
                                     },
                                     "visible": true
-                                },
-                                {
-                                    "name": "subscriptionApi",
-                                    "type": "Microsoft.Solutions.ArmApiControl",
-                                    "request": {
-                                        "method": "GET",
-                                        "path": "subscriptions?api-version=2020-01-01"
-                                    }
-                                },
-                                {
-                                    "name": "subscriptionId",
-                                    "label": "Subscription",
-                                    "type": "Microsoft.Common.DropDown",
-                                    "visible": true,
-                                    "defaultValue": "",
-                                    "toolTip": "Select the Subscription of your Data Landing Zone.",
-                                    "multiselect": false,
-                                    "selectAll": false,
-                                    "filter": true,
-                                    "filterPlaceholder": "Filter items ...",
-                                    "multiLine": true,
-                                    "constraints": {
-                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                                        "required": true
-                                    }
                                 }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "name": "tags",
-                    "label": "Tags",
-                    "elements": [
-                        {
-                            "name": "tagsByResource",
-                            "type": "Microsoft.Common.TagsByResource",
-                            "resources": [
-                                "Microsoft.Storage/storageAccounts",
-                                "Microsoft.Compute/virtualMachines"
+
                             ]
                         }
                     ]
                 }
             ],
-            "deployment": {
+            "outputs": {
                 "parameters": {
-                    "tagsByResource": "[steps('tags').tagsByResource]"
+
                 },
-                "kind": "ResourceGroup",
-                "location": "[steps('basics').resourceScope.location.name]",
-                "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
+                "kind": "ResourceGroup"
             }
         }
     }

@@ -99,7 +99,7 @@
         },
         "outputs": {
             "parameters": {
-                "axiPrincipal": "[steps('deploymentDetails').ServicePrincipal]"
+                "axiPrincipal": "[steps('basics').deploymentDetails.ServicePrincipal]"
             },
             "kind": "ResourceGroup"
         }        

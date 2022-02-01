@@ -100,7 +100,7 @@
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal]",
                 "managementGroupId": "[steps('basics').deploymentDetails.managementGroupId]"
             },
-            "kind": "ResourceGroup"
+            "kind": "Tenant"
         }        
     }
 }

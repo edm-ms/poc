@@ -5,7 +5,12 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "2500931542050536537"
+      "templateHash": "8067884910140679650"
+    }
+  },
+  "parameters": {
+    "subscriptionId": {
+      "type": "string"
     }
   },
   "variables": {
@@ -16,11 +21,11 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[guid(variables('prosimoAppRole').properties.roleName, subscription().subscriptionId)]",
+      "name": "[guid(variables('prosimoAppRole').properties.roleName, parameters('subscriptionId'))]",
       "properties": {
         "permissions": "[variables('prosimoAppRole').properties.permissions]",
         "assignableScopes": [
-          "[subscription().subscriptionId]"
+          "[parameters('subscriptionId')]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
         "roleName": "[variables('prosimoAppRole').properties.roleName]"
@@ -29,11 +34,11 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[guid(variables('prosimoInfraRole').properties.roleName, subscription().subscriptionId)]",
+      "name": "[guid(variables('prosimoInfraRole').properties.roleName, parameters('subscriptionId'))]",
       "properties": {
         "permissions": "[variables('prosimoInfraRole').properties.permissions]",
         "assignableScopes": [
-          "[subscription().subscriptionId]"
+          "[parameters('subscriptionId')]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
         "roleName": "[variables('prosimoInfraRole').properties.roleName]"

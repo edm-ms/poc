@@ -5,7 +5,15 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "13372589211730408613"
+      "templateHash": "14289234832576336869"
+    }
+  },
+  "parameters": {
+    "managementGroupId": {
+      "type": "string"
+    },
+    "principalId": {
+      "type": "string"
     }
   },
   "variables": {
@@ -16,11 +24,11 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[guid(variables('prosimoAppRole').properties.roleName, managementGroup().id, tenant().tenantId)]",
+      "name": "[guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
       "properties": {
         "permissions": "[variables('prosimoAppRole').properties.permissions]",
         "assignableScopes": [
-          "[managementGroup().id]"
+          "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
         "roleName": "[variables('prosimoAppRole').properties.roleName]"
@@ -29,15 +37,39 @@
     {
       "type": "Microsoft.Authorization/roleDefinitions",
       "apiVersion": "2018-01-01-preview",
-      "name": "[guid(variables('prosimoInfraRole').properties.roleName, managementGroup().id, tenant().tenantId)]",
+      "name": "[guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
       "properties": {
         "permissions": "[variables('prosimoInfraRole').properties.permissions]",
         "assignableScopes": [
-          "[managementGroup().id]"
+          "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
         "roleName": "[variables('prosimoInfraRole').properties.roleName]"
       }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-10-01-preview",
+      "name": "[guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
+      "properties": {
+        "principalId": "[parameters('principalId')]",
+        "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
+      },
+      "dependsOn": [
+        "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-10-01-preview",
+      "name": "[guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
+      "properties": {
+        "principalId": "[parameters('principalId')]",
+        "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
+      },
+      "dependsOn": [
+        "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
+      ]
     }
   ]
 }

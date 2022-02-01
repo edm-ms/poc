@@ -8,7 +8,7 @@ var prosimoInfraRole = json(loadTextContent('../Parameters/infra-role.json'))
 
 
 resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoAppRole.properties.roleName, managementGroupId, tenant().tenantId)
+  name: guid(prosimoAppRole.properties.roleName, managementGroupId)
   properties: {
     permissions: prosimoAppRole.properties.permissions
     assignableScopes: [
@@ -20,7 +20,7 @@ resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-p
 }
 
 resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoInfraRole.properties.roleName, managementGroupId, tenant().tenantId)
+  name: guid(prosimoInfraRole.properties.roleName, managementGroupId)
   properties: {
     permissions: prosimoInfraRole.properties.permissions
     assignableScopes: [
@@ -32,7 +32,7 @@ resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01
 }
 
 resource assignAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(prosimoAppRole.properties.roleName, managementGroupId, tenant().tenantId)
+  name: guid(prosimoAppRole.properties.roleName, managementGroupId)
   properties: {
     principalId: principalId
     principalType: 'ServicePrincipal'
@@ -41,7 +41,7 @@ resource assignAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-previ
 }
 
 resource assignInfraRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(prosimoInfraRole.properties.roleName, managementGroupId, tenant().tenantId)
+  name: guid(prosimoInfraRole.properties.roleName, managementGroupId)
   properties: {
     principalId: principalId
     principalType: 'ServicePrincipal'

@@ -11,7 +11,7 @@ module mgtDeploy 'mgt-deploy.bicep' = {
   scope: mgtGroup
   name: 'deploy-mgttest'
   params: {
-    managementGroupId: managementGroupId
+    managementGroupId: mgtGroup.name
     principalId: principalId
   }
 }

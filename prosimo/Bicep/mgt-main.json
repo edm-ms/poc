@@ -5,14 +5,11 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "14118914115156043079"
+      "templateHash": "7113512984279362245"
     }
   },
   "parameters": {
-    "mgtGroupName": {
-      "type": "string"
-    },
-    "managementGroupName": {
+    "managementGroupId": {
       "type": "string"
     },
     "principalId": {
@@ -24,7 +21,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "deploy-mgttest",
-      "scope": "[format('Microsoft.Management/managementGroups/{0}', parameters('mgtGroupName'))]",
+      "scope": "[format('Microsoft.Management/managementGroups/{0}', parameters('managementGroupId'))]",
       "location": "[deployment().location]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -33,7 +30,7 @@
         "mode": "Incremental",
         "parameters": {
           "managementGroupId": {
-            "value": "[parameters('managementGroupName')]"
+            "value": "[parameters('managementGroupId')]"
           },
           "principalId": {
             "value": "[parameters('principalId')]"

@@ -57,9 +57,9 @@
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "This deployment will create 2 service principals that will be used by Prosimo to scale your edge locations.",
+                                        "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified subscription scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
                                         "style": "Info",
-                                        "uri": ""
+                                        "uri": "https://help.prosimo.io/hc/en-us/articles/360047151112"
                                     }
                                 },
                                 {
@@ -69,7 +69,7 @@
                                         "password": "Password",
                                         "certificateThumbprint": "Certificate thumbprint",
                                         "authenticationType": "Authentication Type",
-                                        "sectionHeader": "Service Principal"
+                                        "sectionHeader": "Prosimo-AIR Service Principal"
                                     },
                                     "toolTip": {
                                         "password": "Password",

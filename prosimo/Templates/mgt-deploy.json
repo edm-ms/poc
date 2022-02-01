@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "14289234832576336869"
+      "templateHash": "18373509561611399114"
     }
   },
   "parameters": {
@@ -28,7 +28,7 @@
       "properties": {
         "permissions": "[variables('prosimoAppRole').properties.permissions]",
         "assignableScopes": [
-          "[parameters('managementGroupId')]"
+          "[format('/providers/Microsoft.Management/managementGroups/{0}', parameters('managementGroupId'))]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
         "roleName": "[variables('prosimoAppRole').properties.roleName]"
@@ -41,7 +41,7 @@
       "properties": {
         "permissions": "[variables('prosimoInfraRole').properties.permissions]",
         "assignableScopes": [
-          "[parameters('managementGroupId')]"
+          "[format('/providers/Microsoft.Management/managementGroups/{0}', parameters('managementGroupId'))]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
         "roleName": "[variables('prosimoInfraRole').properties.roleName]"
@@ -49,10 +49,11 @@
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-10-01-preview",
+      "apiVersion": "2020-08-01-preview",
       "name": "[guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
       "properties": {
         "principalId": "[parameters('principalId')]",
+        "principalType": "ServicePrincipal",
         "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
       },
       "dependsOn": [
@@ -61,10 +62,11 @@
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-10-01-preview",
+      "apiVersion": "2020-08-01-preview",
       "name": "[guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId)]",
       "properties": {
         "principalId": "[parameters('principalId')]",
+        "principalType": "ServicePrincipal",
         "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId'), tenant().tenantId))]"
       },
       "dependsOn": [

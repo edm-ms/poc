@@ -10,6 +10,10 @@
                     "label": "Basics",
                     "elements": [
                         {
+                            "name": "resourceScope",
+                            "type": "Microsoft.Common.ResourceScope"
+                        },
+                        {
                             "name": "deploymentDetails",
                             "label": "Deployment Details",
                             "type": "Microsoft.Common.Section",
@@ -100,7 +104,8 @@
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal]",
                 "managementGroupId": "[steps('basics').deploymentDetails.managementGroupId]"
             },
-            "kind": "Tenant"
+            "kind": "Tenant",
+            "location": "[steps('basics').resourceScope.location.name]"
         }        
     }
 }

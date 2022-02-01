@@ -1,5 +1,5 @@
 {
-    "$schema": "<relative path to dx.schema.json>",
+    "$schema": "<relative path to createFormUI.schema.json>",
     "view": {
         "kind": "Form",
         "properties": {
@@ -119,10 +119,7 @@
                 },
                 "kind": "ResourceGroup",
                 "location": "[steps('basics').resourceScope.location.name]",
-                "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]",
-                "template": {
-                    "file": "<ARM deployment template relative path>"
-                }
+                "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
             }
         }
     }

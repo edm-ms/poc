@@ -1,4 +1,4 @@
-
+targetScope = 'managementGroup'
 
 param principalId array
 

@@ -80,7 +80,7 @@
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal]",
                 "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
             },
-            "kind": "Tenant",
+            "kind": "ManagementGroup",
             "location": "[steps('basics').resourceScope.location.name]",
             "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
         }        

@@ -573,7 +573,7 @@ resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-
   properties: {
     permissions: prosimoAppRole.properties.permissions
     assignableScopes: [
-      '/providers/Microsoft.Management/managementGroups/${managementGroupId}'
+      managementGroupId
     ]
     description: prosimoAppRole.properties.description
     roleName: prosimoAppRole.properties.roleName
@@ -585,7 +585,7 @@ resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@201
   properties: {
     permissions: prosimoInfraRole.properties.permissions
     assignableScopes: [
-      '/providers/Microsoft.Management/managementGroups/${managementGroupId}'
+      managementGroupId
     ]
     description: prosimoInfraRole.properties.description
     roleName: prosimoInfraRole.properties.roleName

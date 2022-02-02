@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "1920807204464261146"
+      "templateHash": "7622413322153708790"
     }
   },
   "parameters": {
@@ -589,7 +589,7 @@
       "properties": {
         "permissions": "[variables('prosimoAppRole').properties.permissions]",
         "assignableScopes": [
-          "[format('/providers/Microsoft.Management/managementGroups/{0}', parameters('managementGroupId'))]"
+          "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
         "roleName": "[variables('prosimoAppRole').properties.roleName]"
@@ -602,7 +602,7 @@
       "properties": {
         "permissions": "[variables('prosimoInfraRole').properties.permissions]",
         "assignableScopes": [
-          "[format('/providers/Microsoft.Management/managementGroups/{0}', parameters('managementGroupId'))]"
+          "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
         "roleName": "[variables('prosimoInfraRole').properties.roleName]"

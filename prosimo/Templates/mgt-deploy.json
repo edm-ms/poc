@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "7622413322153708790"
+      "templateHash": "16660380825203003050"
     }
   },
   "parameters": {
@@ -13,7 +13,7 @@
       "type": "string"
     },
     "principalId": {
-      "type": "string"
+      "type": "array"
     }
   },
   "variables": {
@@ -611,9 +611,9 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-08-01-preview",
-      "name": "[guid(parameters('managementGroupId'), parameters('principalId'), 'ProsimoAppRole')]",
+      "name": "[guid(parameters('managementGroupId'), parameters('principalId')[0], 'ProsimoAppRole')]",
       "properties": {
-        "principalId": "[parameters('principalId')]",
+        "principalId": "[parameters('principalId')[0]]",
         "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoAppRole').properties.roleName, parameters('managementGroupId')))]",
         "principalType": "ServicePrincipal"
       },
@@ -624,9 +624,9 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-08-01-preview",
-      "name": "[guid(parameters('managementGroupId'), parameters('principalId'), 'ProsimoInfraRole')]",
+      "name": "[guid(parameters('managementGroupId'), parameters('principalId')[0], 'ProsimoInfraRole')]",
       "properties": {
-        "principalId": "[parameters('principalId')]",
+        "principalId": "[parameters('principalId')[0]]",
         "roleDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(variables('prosimoInfraRole').properties.roleName, parameters('managementGroupId')))]",
         "principalType": "ServicePrincipal"
       },

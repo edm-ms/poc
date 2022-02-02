@@ -77,7 +77,7 @@
         },
         "outputs": {
             "parameters": {
-                "principalId": "[steps('basics').deploymentDetails.ServicePrincipal]",
+                "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
                 "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
             },
             "kind": "ManagementGroup",

@@ -593,7 +593,7 @@ resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@201
 }
 
 resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, principalId[0], 'ProsimoAppRole')
+  name: guid(managementGroupId, 'ProsimoAppRole')
   properties: {
     principalId: principalId[0]
     roleDefinitionId: prosimoAppRoleDefinition.id
@@ -602,7 +602,7 @@ resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-0
 }
 
 resource assignProsimoInfraRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, principalId[0], 'ProsimoInfraRole')
+  name: guid(managementGroupId, 'ProsimoInfraRole')
   properties: {
     principalId: principalId[0]
     roleDefinitionId: prosimoInfraRoleDefinition.id

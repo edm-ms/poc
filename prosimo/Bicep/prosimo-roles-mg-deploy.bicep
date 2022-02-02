@@ -1,7 +1,7 @@
 targetScope = 'managementGroup'
 
 param managementGroupId string
-param principalId string 
+param principalId array 
 
 var prosimoAppRole = {
   'properties': {
@@ -593,18 +593,18 @@ resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@201
 }
 
 resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, principalId, 'ProsimoAppRole')
+  name: guid(managementGroupId, principalId[0], 'ProsimoAppRole')
   properties: {
-    principalId: principalId
+    principalId: principalId[0]
     roleDefinitionId: prosimoAppRoleDefinition.id
     principalType: 'ServicePrincipal'
   }
 }
 
 resource assignProsimoInfraRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, principalId, 'ProsimoInfraRole')
+  name: guid(managementGroupId, principalId[0], 'ProsimoInfraRole')
   properties: {
-    principalId: principalId
+    principalId: principalId[0]
     roleDefinitionId: prosimoInfraRoleDefinition.id
     principalType: 'ServicePrincipal'
   }

@@ -1,0 +1,98 @@
+{
+    "$schema": "<relative path to createFormUI.schema.json>",
+    "view": {
+        "kind": "Form",
+        "properties": {
+            "title": "Test Form View",
+            "steps": [
+                {
+                    "name": "basics",
+                    "label": "Basics",
+                    "elements": [
+                        {
+                            "name": "deploymentDetailsText",
+                            "type": "Microsoft.Common.TextBlock",
+                            "visible": true,
+                            "options": {
+                                "text": "Select the management group where the custom roles will be created and access will be scoped.",
+                                "link": {
+                                    "label": "",
+                                    "uri": ""
+                                }
+                            }
+                        },   
+                        {
+                            "name": "resourceScope",
+                            "type": "Microsoft.Common.ResourceScope"
+                        },
+                        {
+                            "name": "deploymentDetails",
+                            "label": "Deployment Details",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                        
+                                {
+                                    "name": "infoBoxDeploymentDetails",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
+                                        "style": "Info",
+                                        "uri": "https://help.prosimo.io/hc/en-us/articles/360047151112"
+                                    }
+                                },
+                                {
+                                    "name": "ServicePrincipal",
+                                    "type": "Microsoft.Common.ServicePrincipalSelector",
+                                    "label": {
+                                        "password": "Password",
+                                        "certificateThumbprint": "Certificate thumbprint",
+                                        "authenticationType": "Authentication Type",
+                                        "sectionHeader": "Prosimo-AIR Service Principal"
+                                    },
+                                    "toolTip": {
+                                        "password": "Password",
+                                        "certificateThumbprint": "Certificate thumbprint",
+                                        "authenticationType": "Authentication Type"
+                                    },
+                                    "defaultValue": {
+                                        "principalId": "<default guid>",
+                                        "name": "(New) default App Id"
+                                    },
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "hideCertificate": false
+                                    },
+                                    "visible": true
+                                },
+                                {
+                                    "name": "infoBoxServicePrincipalWarning",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "If you do not see the name of your service principal after using 'Create New' choose 'Select Existing' and pick the service principal you just created.",
+                                        "style": "Warning"
+                                    }
+                                }
+
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "outputs": {
+            "parameters": {
+                "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
+                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
+                "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]"
+            },
+            "kind": "ManagementGroup",
+            "location": "[steps('basics').resourceScope.location.name]",
+            "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
+        }        
+    }
+}

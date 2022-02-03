@@ -577,7 +577,7 @@ resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-
       managementGroupId
     ]
     description: prosimoAppRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${managementGroupName}'
+    roleName: '${prosimoAppRole.properties.roleName}-${managementGroupName}'
   }
 }
 
@@ -589,7 +589,7 @@ resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@201
       managementGroupId
     ]
     description: prosimoInfraRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${managementGroupName}'
+    roleName: '${prosimoInfraRole.properties.roleName}-${managementGroupName}'
   }
 }
 

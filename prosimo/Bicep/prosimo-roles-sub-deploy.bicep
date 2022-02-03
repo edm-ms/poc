@@ -568,7 +568,7 @@ var prosimoInfraRole = {
   }
 }
 
-resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid(prosimoAppRole.properties.roleName, subscriptionId)
   properties: {
     permissions: prosimoAppRole.properties.permissions
@@ -576,11 +576,11 @@ resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-p
       subscriptionId
     ]
     description: prosimoAppRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${subscriptionId}'
+    roleName: '${prosimoAppRole.properties.roleName}-${subscriptionId}'
   }
 }
 
-resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid(prosimoInfraRole.properties.roleName, subscriptionId)
   properties: {
     permissions: prosimoInfraRole.properties.permissions
@@ -588,7 +588,7 @@ resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01
       subscriptionId
     ]
     description: prosimoInfraRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${subscriptionId}'
+    roleName: '${prosimoInfraRole.properties.roleName}-${subscriptionId}'
   }
 }
 
@@ -596,7 +596,7 @@ resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-0
   name: guid(subscriptionId, 'ProsimoAppRole')
   properties: {
     principalId: principalId[0]
-    roleDefinitionId: appRoleDefinition.id
+    roleDefinitionId: prosimoAppRoleDefinition.id
     principalType: 'ServicePrincipal'
   }
 }
@@ -605,7 +605,7 @@ resource assignProsimoInfraRole 'Microsoft.Authorization/roleAssignments@2020-08
   name: guid(subscriptionId, 'ProsimoInfraRole')
   properties: {
     principalId: principalId[0]
-    roleDefinitionId: infraRoleDefinition.id
+    roleDefinitionId: prosimoInfraRoleDefinition.id
     principalType: 'ServicePrincipal'
   }
 }

@@ -33,7 +33,7 @@
                             "elements": [
                         
                                 {
-                                    "name": "infoBoxPrerequisites",
+                                    "name": "infoBoxDeploymentDetails",
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
@@ -69,11 +69,11 @@
                                     "visible": true
                                 },
                                 {
-                                    "name": "infoBoxPrerequisites",
+                                    "name": "infoBoxServicePrincipalWarning",
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "If you do not see the name of your new service principal select 'existing' and choose the service principal you just created.",
+                                        "text": "If you do not see the name of your service principal after using 'Create New' choose 'Select Existing' and pick the service principal you just created.",
                                         "style": "Warning"
                                     }
                                 }

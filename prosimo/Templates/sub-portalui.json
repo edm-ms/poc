@@ -67,6 +67,15 @@
                                         "hideCertificate": false
                                     },
                                     "visible": true
+                                },
+                                {
+                                    "name": "infoBoxPrerequisites",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "If you do not see the name of your new service principal select 'existing' and choose the service principal you just created.",
+                                        "style": "Warning"
+                                    }
                                 }
 
                             ]

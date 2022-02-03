@@ -78,7 +78,8 @@
         "outputs": {
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
-                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
+                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
+                "managementGroupName": "[steps('basics').resourceScope.managementGroup.Name]"
             },
             "kind": "ManagementGroup",
             "location": "[steps('basics').resourceScope.location.name]",

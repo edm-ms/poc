@@ -1,7 +1,6 @@
-targetScope = 'managementGroup'
+targetScope = 'subscription'
 
-param managementGroupId string
-param managementGroupName string
+param subscriptionId string
 param principalId array 
 
 var prosimoAppRole = {
@@ -569,44 +568,44 @@ var prosimoInfraRole = {
   }
 }
 
-resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoAppRole.properties.roleName, managementGroupId)
+resource appRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+  name: guid(prosimoAppRole.properties.roleName, subscriptionId)
   properties: {
     permissions: prosimoAppRole.properties.permissions
     assignableScopes: [
-      managementGroupId
+      subscriptionId
     ]
     description: prosimoAppRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${managementGroupName}'
+    roleName: 'prosimoAppRole.properties.roleName-${subscriptionId}'
   }
 }
 
-resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoInfraRole.properties.roleName, managementGroupId)
+resource infraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+  name: guid(prosimoInfraRole.properties.roleName, subscriptionId)
   properties: {
     permissions: prosimoInfraRole.properties.permissions
     assignableScopes: [
-      managementGroupId
+      subscriptionId
     ]
     description: prosimoInfraRole.properties.description
-    roleName: 'prosimoAppRole.properties.roleName-${managementGroupName}'
+    roleName: 'prosimoAppRole.properties.roleName-${subscriptionId}'
   }
 }
 
 resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, 'ProsimoAppRole')
+  name: guid(subscriptionId, 'ProsimoAppRole')
   properties: {
     principalId: principalId[0]
-    roleDefinitionId: prosimoAppRoleDefinition.id
+    roleDefinitionId: appRoleDefinition.id
     principalType: 'ServicePrincipal'
   }
 }
 
 resource assignProsimoInfraRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, 'ProsimoInfraRole')
+  name: guid(subscriptionId, 'ProsimoInfraRole')
   properties: {
     principalId: principalId[0]
-    roleDefinitionId: prosimoInfraRoleDefinition.id
+    roleDefinitionId: infraRoleDefinition.id
     principalType: 'ServicePrincipal'
   }
 }

@@ -72,7 +72,8 @@
               "requiredTags": "[steps('basics').tags]"
           },
           "kind": "ManagementGroup",
-          "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
+          "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
+          "location": "[steps('basics').resourceScope.location.name]"
       }        
     }
 }

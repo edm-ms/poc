@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "requiredTags": {
+            "value": [
+              {
+                "tagName": "Application Owner",
+                "inheritTag": true
+              },
+              {
+                "tagName": "Application Name",
+                "inheritTag": false
+              },
+              {
+                "tagName": "Criticality",
+                "inheritTag": true
+              },
+              {
+                "tagName": "Contact Email",
+                "inheritTag": true
+              },
+              {
+                "tagName": "Data Classification",
+                "inheritTag": false
+              }
+            ]
+        }
+    }
+}

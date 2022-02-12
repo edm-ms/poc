@@ -71,11 +71,7 @@
                     "requiredTags": "[steps('basics').tags]"
                 },
                 "kind": "ManagementGroup",
-                "location": "[steps('basics').resourceScope.location.name]",
-                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
-                "template": {
-                    "file": "<ARM deployment template relative path>"
-                }
+                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
             }
         }
     }

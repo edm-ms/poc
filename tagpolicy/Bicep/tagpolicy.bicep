@@ -29,7 +29,7 @@ resource requiredTagPolicy 'Microsoft.Authorization/policyAssignments@2021-06-01
 }]
 
 resource inheritTagPolicy 'Microsoft.Authorization/policyAssignments@2021-06-01' = [for i in range(0, length(requiredTags)): if (requiredTags[i].inheritTag) {
-  name: 'Inherit-Tag-${replace(requiredTags[i].name, ' ', '')}'
+  name: 'Inherit-Tag-${replace(requiredTags[i].tagname, ' ', '')}'
   properties: {
     policyDefinitionId: inheritTag
     description: 'Inherit ${requiredTags[i].tagname} tag for resources if missing.'

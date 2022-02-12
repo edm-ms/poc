@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "2819692127165929042"
+      "templateHash": "1845237500916734711"
     }
   },
   "parameters": {
@@ -105,8 +105,9 @@
       "apiVersion": "2020-08-01-preview",
       "name": "[guid(extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyAssignments', format('{0}', take(format('Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[range(0, length(parameters('requiredTags')))[copyIndex()]]].tagname, ' ', '')), 24))))]",
       "properties": {
-        "principalId": "[reference(extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyAssignments', format('{0}', take(format('Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[range(0, length(parameters('requiredTags')))[copyIndex()]]].tagname, ' ', '')), 24)))).policyDefinitionId]",
-        "roleDefinitionId": "[variables('tagContributor')]"
+        "principalId": "[reference(extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyAssignments', format('{0}', take(format('Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[range(0, length(parameters('requiredTags')))[copyIndex()]]].tagname, ' ', '')), 24))), '2021-06-01', 'full').identity.principalId]",
+        "roleDefinitionId": "[variables('tagContributor')]",
+        "principalType": "ServicePrincipal"
       },
       "dependsOn": [
         "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyAssignments', format('{0}', take(format('Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[range(0, length(parameters('requiredTags')))[copyIndex()]]].tagname, ' ', '')), 24)))]",

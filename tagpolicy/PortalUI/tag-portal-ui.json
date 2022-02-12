@@ -13,66 +13,66 @@
                             "name": "resourceScope",
                             "type": "Microsoft.Common.ResourceScope"
                         },
-{
-  "name": "tags",
-  "type": "Microsoft.Common.EditableGrid",
-  "ariaLabel": "Required tags on resource groups",
-  "label": "Required tags on resource groups",
-  "constraints": {
-    "width": "Full",
-    "rows": {
-      "count": {
-        "min": 1,
-        "max": 10
-      }
-    },
-    "columns": [
-      {
-        "id": "tagName",
-        "header": "Required Tags on Resource Groups",
-        "width": "1fr",
-        "element": {
-          "type": "Microsoft.Common.TextBox",
-          "placeholder": "Tag Name",
-          "constraints": {
-            "required": true
-          }
-        }
-      },
-      {
-        "id": "inheritTag",
-        "header": "Inherit Tag on Resources",
-        "width": "1fr",
-        "element": {
-          "type": "Microsoft.Common.OptionsGroup",
-          "constraints": {
-            "allowedValues": [
-              {
-                "label": "Yes",
-                "value": true
-              },
-              {
-                "label": "No",
-                "value": false
-              }
-            ],
-            "required": true
-          }
-        }
-      }	  
-    ]
-  }
-}
+                        {
+                          "name": "tags",
+                          "type": "Microsoft.Common.EditableGrid",
+                          "ariaLabel": "Required tags on resource groups",
+                          "label": "Required tags on resource groups",
+                          "constraints": {
+                            "width": "Full",
+                            "rows": {
+                              "count": {
+                                "min": 1,
+                                "max": 10
+                              }
+                            },
+                            "columns": [
+                              {
+                                "id": "tagName",
+                                "header": "Required Tags on Resource Groups",
+                                "width": "1fr",
+                                "element": {
+                                  "type": "Microsoft.Common.TextBox",
+                                  "placeholder": "Tag Name",
+                                  "constraints": {
+                                    "required": true
+                                  }
+                                }
+                              },
+                              {
+                                "id": "inheritTag",
+                                "header": "Inherit Tag on Resources",
+                                "width": "1fr",
+                                "element": {
+                                  "type": "Microsoft.Common.OptionsGroup",
+                                  "constraints": {
+                                    "allowedValues": [
+                                      {
+                                        "label": "Yes",
+                                        "value": true
+                                      },
+                                      {
+                                        "label": "No",
+                                        "value": false
+                                      }
+                                    ],
+                                    "required": true
+                                  }
+                                }
+                              }	  
+                            ]
+                          }
+                        }
                     ]
                 }
-            ],
-            "outputs": {
-                "parameters": {
-                    "requiredTags": "[steps('basics').tags]"
-                },
-                "kind": "ManagementGroup",
-                "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
-            }
-        }
+            ]
+        },
+        "outputs": {
+          "parameters": {
+              "requiredTags": "[steps('basics').tags]"
+          },
+          "kind": "ManagementGroup",
+          "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]"
+      }        
     }
 }

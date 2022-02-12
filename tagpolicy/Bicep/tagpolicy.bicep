@@ -71,7 +71,7 @@ resource inheritTagPolicy 'Microsoft.Authorization/policyAssignments@2021-06-01'
 resource assignRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = [for i in range(0, length(requiredTags)): if (requiredTags[i].inheritTag) {
   name: guid(inheritTagPolicy[i].id)
   properties: {
-    principalId: inheritTagPolicy[i].id
+    principalId: inheritTagPolicy[i].properties.policyDefinitionId
     roleDefinitionId: tagContributor
   }
 }]

@@ -27,7 +27,7 @@ param requiredTags array = [
 
 var inheritTag = '/providers/Microsoft.Authorization/policyDefinitions/cd3aa116-8754-49c9-a813-ad46512ece54'
 var requireTag = '/providers/Microsoft.Authorization/policyDefinitions/96670d01-0a4d-4649-9c89-2d3abc0a5025'
-var tagContributor = '4a9ae827-6dc8-4573-8ac7-8239d42aa03f'
+var tagContributor = '/providers/Microsoft.Authorization/roleDefinitions/4a9ae827-6dc8-4573-8ac7-8239d42aa03f'
 
 resource requiredTagPolicy 'Microsoft.Authorization/policyAssignments@2021-06-01' = [for i in range(0, length(requiredTags)): {
   name: uniqueString(requiredTags[i].tagname, managementGroup().id, requireTag)

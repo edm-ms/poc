@@ -1,9 +1,9 @@
 {
-    "$schema": "<relative path to dx.schema.json>",
+    "$schema": "<relative path to createFormUI.schema.json>",
     "view": {
         "kind": "Form",
         "properties": {
-            "title": "Test Form View",
+            "title": "Tag Policy Assignment",
             "steps": [
                 {
                     "name": "basics",
@@ -66,7 +66,7 @@
                     ]
                 }
             ],
-            "deployment": {
+            "outputs": {
                 "parameters": {
                     "requiredTags": "[steps('basics').tags]"
                 },

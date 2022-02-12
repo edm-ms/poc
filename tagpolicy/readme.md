@@ -1,0 +1,1 @@
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fedm-ms%2Fpoc%2Fmain%2Ftagpolicy%2FTemplates%2Ftagpolicy.json/uiFormDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fedm-ms%2Fpoc%2Fmain%2Ftagpolicy%2FPortalUI%2Ftag-portal-ui.json)

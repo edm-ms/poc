@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.1124.51302",
+      "templateHash": "15659694421286429535"
+    }
+  },
+  "parameters": {
+    "requiredTags": {
+      "type": "array",
+      "defaultValue": [
+        "Contact Email",
+        "Application Owner"
+      ]
+    }
+  },
+  "variables": {
+    "inheritTag": "/providers/Microsoft.Authorization/policyDefinitions/cd3aa116-8754-49c9-a813-ad46512ece54",
+    "requireTag": "/providers/Microsoft.Authorization/policyDefinitions/96670d01-0a4d-4649-9c89-2d3abc0a5025"
+  },
+  "resources": [
+    {
+      "copy": {
+        "name": "requiredTagPolicy",
+        "count": "[length(range(0, length(parameters('requiredTags'))))]"
+      },
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2021-06-01",
+      "name": "[uniqueString(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname, managementGroup().id, variables('requireTag'))]",
+      "properties": {
+        "policyDefinitionId": "[variables('requireTag')]",
+        "description": "[format('Require {0} tag for Resource Groups', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]",
+        "displayName": "[format('Require {0} tag for Resource Groups', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]",
+        "enforcementMode": "Default",
+        "nonComplianceMessages": [
+          {
+            "message": "[format('Supply the tag and value for: {0}', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]"
+          }
+        ],
+        "parameters": {
+          "tagName": {
+            "value": "[parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].inheritTag]",
+      "copy": {
+        "name": "inheritTagPolicy",
+        "count": "[length(range(0, length(parameters('requiredTags'))))]"
+      },
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2021-06-01",
+      "name": "[format('Inherit-Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].name, ' ', ''))]",
+      "properties": {
+        "policyDefinitionId": "[variables('inheritTag')]",
+        "description": "[format('Inherit {0} tag for resources if missing.', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]",
+        "displayName": "[format('Inherit {0} tag for resources if missing.', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "tagName": {
+            "value": "[parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname]"
+          }
+        }
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      }
+    }
+  ]
+}

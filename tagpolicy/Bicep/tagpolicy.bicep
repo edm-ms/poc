@@ -1,9 +1,28 @@
 targetScope = 'managementGroup'
 
 param requiredTags array = [
-  'Contact Email'
-  'Application Owner'
+  {
+    tagName: 'Application Owner'
+    inheritTag: true
+  }
+  {
+    tagName: 'Application Name'
+    inheritTag: false
+  }
+  {
+    tagName: 'Criticality'
+    inheritTag: true
+  }
+  {
+    tagName: 'Contact Email'
+    inheritTag: true
+  }
+  {
+    tagName: 'Data Classification'
+    inheritTag: false
+  }
 ]
+
 
 var inheritTag = '/providers/Microsoft.Authorization/policyDefinitions/cd3aa116-8754-49c9-a813-ad46512ece54'
 var requireTag = '/providers/Microsoft.Authorization/policyDefinitions/96670d01-0a4d-4649-9c89-2d3abc0a5025'

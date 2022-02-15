@@ -19,7 +19,7 @@ param enforcementMode string
 ])
 param identity string = 'None'
 
-resource policyAssignment 'Microsoft.Authorization/policyAssignments@2021-06-01' = {
+resource policyAssignment 'Microsoft.Authorization/policyAssignments@2020-09-01' = {
   name: assignmentName
   location: location
   properties: {

@@ -50,6 +50,9 @@ module inheritTagPolicy 'assign-policy.bicep' = [for i in range(0, length(requir
   name: 'inheritTag-${replace(requiredTags[i].tagname, ' ', '')}'
   params: {
     parameters: {
+      tagName: {
+        value: requiredTags[i].tagname
+      }
     }
     policyId: inheritTag
     assignmentName: uniqueString(requiredTags[i].tagname, managementGroup().id, inheritTag)

@@ -73,7 +73,7 @@ module delay 'delay-loop.bicep' = {
 }
 
 module assignRole 'assign-role.bicep' =  [for i in range(0, length(requiredTags)): if (requiredTags[i].inheritTag) {
-  name: 'assignRole-${requiredTags[i].tagName}'
+  name: 'assignRole-${replace(requiredTags[i].tagname, ' ', '')}'
   params: {
     roleDefinitionId: tagContributor
     assignmentName: inheritTagPolicy[i].outputs.policyResourceId

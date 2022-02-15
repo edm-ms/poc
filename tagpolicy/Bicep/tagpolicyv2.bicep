@@ -70,14 +70,17 @@ module delay 'delay-loop.bicep' = {
   params: {
     location: location
   }
+  dependsOn: [
+    inheritTagPolicy
+  ]
 }
 
 module assignRole 'assign-role.bicep' =  [for i in range(0, length(requiredTags)): if (requiredTags[i].inheritTag) {
   name: 'assignRole-${replace(requiredTags[i].tagname, ' ', '')}'
   params: {
     roleDefinitionId: tagContributor
-    assignmentName: inheritTagPolicy[i].outputs.policyResourceId
-    principalId: inheritTagPolicy[i].outputs.policyPrincipalId
+    assignmentName: requiredTags[i].inheritTag ? inheritTagPolicy[i].outputs.policyResourceId : ''
+    principalId: requiredTags[i].inheritTag ? inheritTagPolicy[i].outputs.policyPrincipalId : ''
   }
   dependsOn: [
     delay

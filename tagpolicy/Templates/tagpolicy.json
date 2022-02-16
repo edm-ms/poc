@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "6355755289911407288"
+      "templateHash": "5559095796235016077"
     }
   },
   "parameters": {
@@ -71,7 +71,7 @@
             "value": "[variables('requireTag')]"
           },
           "assignmentName": {
-            "value": "[uniqueString(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname, managementGroup().id, variables('requireTag'))]"
+            "value": "[format('{0}', take(format('RGTag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname, ' ', '')), 24))]"
           },
           "nonComplianceMessage": {
             "value": "[format('Supply the tag and value for: {0}', parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname)]"
@@ -202,7 +202,7 @@
             "value": "[variables('inheritTag')]"
           },
           "assignmentName": {
-            "value": "[uniqueString(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname, managementGroup().id, variables('inheritTag'))]"
+            "value": "[format('{0}', take(format('Tag-{0}', replace(parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname, ' ', '')), 24))]"
           },
           "nonComplianceMessage": {
             "value": "[parameters('requiredTags')[range(0, length(parameters('requiredTags')))[copyIndex()]].tagname]"

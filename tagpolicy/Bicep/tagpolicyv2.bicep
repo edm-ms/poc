@@ -37,7 +37,7 @@ module requiredTagPolicy 'assign-policy.bicep' = [for i in range(0, length(requi
       }
     }
     policyId: requireTag
-    assignmentName: uniqueString(requiredTags[i].tagname, managementGroup().id, requireTag)
+    assignmentName: '${take('RGTag-${replace(requiredTags[i].tagname, ' ', '')}', 24)}'
     nonComplianceMessage: 'Supply the tag and value for: ${requiredTags[i].tagname}'
     displayName: 'Require ${requiredTags[i].tagname} tag for Resource Groups'
     enforcementMode: 'Default'
@@ -55,7 +55,7 @@ module inheritTagPolicy 'assign-policy.bicep' = [for i in range(0, length(requir
       }
     }
     policyId: inheritTag
-    assignmentName: uniqueString(requiredTags[i].tagname, managementGroup().id, inheritTag)
+    assignmentName: '${take('Tag-${replace(requiredTags[i].tagname, ' ', '')}', 24)}'
     nonComplianceMessage: requiredTags[i].tagname
     displayName: 'Inherit ${requiredTags[i].tagname} tag for resources if missing.'
     enforcementMode: 'Default'

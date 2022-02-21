@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1124.51302",
-      "templateHash": "18379596859536090894"
+      "version": "0.4.1272.37030",
+      "templateHash": "12835135256702686620"
     }
   },
   "parameters": {
@@ -228,7 +228,7 @@
     },
     "prosimoInfraRole": {
       "properties": {
-        "roleName": "ProsimoEdgeRole",
+        "roleName": "ProsimoInfraRole",
         "description": "Has required permissions for creating a prosimo edge in a subscription",
         "assignableScopes": [],
         "permissions": [

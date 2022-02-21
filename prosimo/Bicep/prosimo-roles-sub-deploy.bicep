@@ -215,7 +215,7 @@ var prosimoAppRole = {
 
 var prosimoInfraRole = {
   'properties': {
-      'roleName': 'ProsimoEdgeRole'
+      'roleName': 'ProsimoInfraRole'
       'description': 'Has required permissions for creating a prosimo edge in a subscription'
       'assignableScopes': []
       'permissions': [

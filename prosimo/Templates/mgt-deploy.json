@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1124.51302",
-      "templateHash": "6644129603386786025"
+      "version": "0.4.1272.37030",
+      "templateHash": "9962427055505029568"
     }
   },
   "parameters": {
@@ -231,8 +231,8 @@
     },
     "prosimoInfraRole": {
       "properties": {
-        "roleName": "ProsimoEdgeRole",
-        "description": "Has required permissions for creating a prosimo edge in a subscription",
+        "roleName": "ProsimoInfraRole",
+        "description": "Has required permissions for creating a prosimo edges in a subscription",
         "assignableScopes": [],
         "permissions": [
           {
@@ -595,7 +595,7 @@
           "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
-        "roleName": "[format('{0}-{1}', variables('prosimoAppRole').properties.roleName, parameters('managementGroupName'))]"
+        "roleName": "[format('{0}-{1}', variables('prosimoAppRole').properties.roleName, toUpper(parameters('managementGroupName')))]"
       }
     },
     {
@@ -608,7 +608,7 @@
           "[parameters('managementGroupId')]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
-        "roleName": "[format('{0}-{1}', variables('prosimoInfraRole').properties.roleName, parameters('managementGroupName'))]"
+        "roleName": "[format('{0}-{1}', variables('prosimoInfraRole').properties.roleName, toUpper(parameters('managementGroupName')))]"
       }
     },
     {

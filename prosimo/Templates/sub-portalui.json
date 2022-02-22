@@ -90,7 +90,6 @@
                 "subscriptionId": "[steps('basics').resourceScope.subscriptionId]"
             },
             "kind": "Subscription",
-            "location": "[steps('basics').resourceScope.location.name]",
             "subscriptionId": "[steps('basics').resourceScope.subscriptionId]"
         }        
     }

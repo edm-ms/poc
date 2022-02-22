@@ -576,7 +576,7 @@ resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-
       subscriptionId
     ]
     description: prosimoAppRole.properties.description
-    roleName: '${prosimoAppRole.properties.roleName}-${subscriptionId}'
+    roleName: '${prosimoAppRole.properties.roleName}-${replace(subscriptionId ,'/subscriptions/', '')}'
   }
 }
 
@@ -588,7 +588,7 @@ resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@201
       subscriptionId
     ]
     description: prosimoInfraRole.properties.description
-    roleName: '${prosimoInfraRole.properties.roleName}-${subscriptionId}'
+    roleName: '${prosimoInfraRole.properties.roleName}-${replace(subscriptionId ,'/subscriptions/', '')}'
   }
 }
 

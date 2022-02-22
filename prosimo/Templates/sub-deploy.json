@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "12835135256702686620"
+      "templateHash": "2312299389680659435"
     }
   },
   "parameters": {
@@ -592,7 +592,7 @@
           "[parameters('subscriptionId')]"
         ],
         "description": "[variables('prosimoAppRole').properties.description]",
-        "roleName": "[format('{0}-{1}', variables('prosimoAppRole').properties.roleName, parameters('subscriptionId'))]"
+        "roleName": "[format('{0}-{1}', variables('prosimoAppRole').properties.roleName, replace(parameters('subscriptionId'), '/subscriptions/', ''))]"
       }
     },
     {
@@ -605,7 +605,7 @@
           "[parameters('subscriptionId')]"
         ],
         "description": "[variables('prosimoInfraRole').properties.description]",
-        "roleName": "[format('{0}-{1}', variables('prosimoInfraRole').properties.roleName, parameters('subscriptionId'))]"
+        "roleName": "[format('{0}-{1}', variables('prosimoInfraRole').properties.roleName, replace(parameters('subscriptionId'), '/subscriptions/', ''))]"
       }
     },
     {

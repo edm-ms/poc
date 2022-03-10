@@ -1,5 +1,5 @@
 
 
-param subscriptionList object
+param subscriptionList array
 
-output subscriptions object = subscriptionList
+output subscriptions array = subscriptionList

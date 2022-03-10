@@ -14,8 +14,12 @@
                             "type": "Microsoft.Common.TextBlock",
                             "visible": true,
                             "options": {
-                                "text": "Select the management group where the custom roles will be created and access will be scoped."
+                                "text": "Select subscription for Deployment Script."
                             }
+                        },
+                        {
+                            "name": "resourceScope",
+                            "type": "Microsoft.Common.ResourceScope"
                         },   
                         {
                             "name": "deploymentDetails",
@@ -32,7 +36,7 @@
                                     }
                                 },
                                 {
-                                    "name": "subscriptionId",
+                                    "name": "subscriptionIds",
                                     "label": "Subscription",
                                     "type": "Microsoft.Common.DropDown",
                                     "visible": true,
@@ -55,11 +59,12 @@
             ]
         },
         "outputs": {
-            "parameters": {
-                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionId]"
-            },
             "kind": "Subscription",
-            "location": "eastus"
+            "location": "[steps('basics').resourceScope.location.name]",
+            "subscriptionId": "[steps('basics').resourceScope.subscriptionId]",
+            "parameters": {
+                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]"
+            }
         }        
     }
 }

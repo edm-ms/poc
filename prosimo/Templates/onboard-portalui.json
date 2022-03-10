@@ -24,10 +24,24 @@
                         },   
                         {
                             "name": "deploymentDetails",
-                            "label": "Deployment Details",
+                            "label": "Prosimo Subscription Onboarding",
                             "type": "Microsoft.Common.Section",
                             "visible": true,
                             "elements": [
+                                {
+                                    "name": "prosimoTeamName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "Prosimo Team Name",
+                                    "defaultValue": "",
+                                    "toolTip": "Enter the name of your Prosimo Team. You will have created this on your initial login.",
+                                    "placeholder": "",
+                                    "multiLine": false,
+                                    "constraints": {
+                                      "required": true,
+                                      "validations": []
+                                    },
+                                    "visible": true
+                                  },
                                       {
                                     "name": "subscriptionApi",
                                     "type": "Microsoft.Solutions.ArmApiControl",
@@ -61,7 +75,6 @@
         },
         "outputs": {
             "kind": "Subscription",
-            "location": "[steps('basics').resourceScope.location.name]",
             "subscriptionId": "[steps('basics').resourceScope.subscriptionId]",
             "parameters": {
                 "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]"

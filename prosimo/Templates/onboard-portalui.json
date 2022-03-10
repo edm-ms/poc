@@ -60,7 +60,7 @@
         },
         "outputs": {
             "kind": "Subscription",
-            "location": "[steps('basics').resourceScope.location.name]",
+            "location": "[steps('basics').resourceScope.locationName]",
             "subscriptionId": "[steps('basics').resourceScope.subscriptionId]",
             "parameters": {
                 "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]"

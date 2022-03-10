@@ -10,6 +10,14 @@
                     "label": "Basics",
                     "elements": [
                         {
+                            "name": "deploymentDetailsText",
+                            "type": "Microsoft.Common.TextBlock",
+                            "visible": true,
+                            "options": {
+                                "text": "Select the management group where the custom roles will be created and access will be scoped."
+                            }
+                        },   
+                        {
                             "name": "deploymentDetails",
                             "label": "Deployment Details",
                             "type": "Microsoft.Common.Section",
@@ -29,7 +37,7 @@
                                     "type": "Microsoft.Common.DropDown",
                                     "visible": true,
                                     "defaultValue": "",
-                                    "toolTip": "Select the subscription(s) to onboard into Prosimo.",
+                                    "toolTip": "Select the Subscription for your Data Landing Zone.",
                                     "multiselect": true,
                                     "selectAll": true,
                                     "filter": true,
@@ -39,32 +47,6 @@
                                         "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
                                         "required": true
                                     }
-                                },
-                                {
-                                    "name": "ServicePrincipal",
-                                    "type": "Microsoft.Common.ServicePrincipalSelector",
-                                    "label": {
-                                        "password": "Password",
-                                        "certificateThumbprint": "Certificate thumbprint",
-                                        "authenticationType": "Authentication Type",
-                                        "sectionHeader": "Prosimo-AIR Service Principal"
-                                    },
-                                    "toolTip": {
-                                        "password": "Password",
-                                        "certificateThumbprint": "Certificate thumbprint",
-                                        "authenticationType": "Authentication Type"
-                                    },
-                                    "defaultValue": {
-                                        "principalId": "<default guid>",
-                                        "name": "(New) default App Id"
-                                    },
-                                    "constraints": {
-                                        "required": true
-                                    },
-                                    "options": {
-                                        "hideCertificate": true
-                                    },
-                                    "visible": true
                                 }
                             ]
                         }
@@ -74,7 +56,7 @@
         },
         "outputs": {
             "parameters": {
-                "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]"
+                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionId]"
             },
             "kind": "Subscription",
             "location": "eastus"

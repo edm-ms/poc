@@ -10,13 +10,14 @@
                     "label": "Basics",
                     "elements": [
                         {
-                            "name": "deploymentDetailsText",
-                            "type": "Microsoft.Common.TextBlock",
+                            "name": "introText",
+                            "type": "Microsoft.Common.InfoBox",
                             "visible": true,
                             "options": {
-                                "text": "Select subscription for Deployment Script."
+                              "icon": "Info",
+                              "text": "Select a subscription and resource group to store a deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
                             }
-                        },
+                          },
                         {
                             "name": "resourceScope",
                             "type": "Microsoft.Common.ResourceScope"

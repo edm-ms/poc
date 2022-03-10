@@ -1,0 +1,83 @@
+{
+    "$schema": "<relative path to createFormUI.schema.json>",
+    "view": {
+        "kind": "Form",
+        "properties": {
+            "title": "Test Form View",
+            "steps": [
+                {
+                    "name": "basics",
+                    "label": "Basics",
+                    "elements": [
+                        {
+                            "name": "deploymentDetails",
+                            "label": "Deployment Details",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                      {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionId",
+                                    "label": "Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the subscription(s) to onboard into Prosimo.",
+                                    "multiselect": true,
+                                    "selectAll": true,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "ServicePrincipal",
+                                    "type": "Microsoft.Common.ServicePrincipalSelector",
+                                    "label": {
+                                        "password": "Password",
+                                        "certificateThumbprint": "Certificate thumbprint",
+                                        "authenticationType": "Authentication Type",
+                                        "sectionHeader": "Prosimo-AIR Service Principal"
+                                    },
+                                    "toolTip": {
+                                        "password": "Password",
+                                        "certificateThumbprint": "Certificate thumbprint",
+                                        "authenticationType": "Authentication Type"
+                                    },
+                                    "defaultValue": {
+                                        "principalId": "<default guid>",
+                                        "name": "(New) default App Id"
+                                    },
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "hideCertificate": true
+                                    },
+                                    "visible": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "outputs": {
+            "parameters": {
+                "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]"
+            },
+            "kind": "Subscription",
+            "location": "eastus"
+        }        
+    }
+}

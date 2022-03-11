@@ -65,8 +65,8 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
                 "tenantID": "$tenantId"
             }
         }    
-    "@
-            Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
+"@
+          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
         }
     '''
   }

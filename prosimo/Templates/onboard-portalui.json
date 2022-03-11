@@ -28,6 +28,35 @@
                             "type": "Microsoft.Common.Section",
                             "visible": true,
                             "elements": [
+                              {
+                                "name": "clientId",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Prosimo Team Name",
+                                "defaultValue": "",
+                                "toolTip": "Prosimo Service Principal Client ID",
+                                "placeholder": "",
+                                "multiLine": false,
+                                "constraints": {
+                                  "required": true,
+                                  "validations": []
+                                },
+                                "visible": true
+                              },
+                              {
+                                "name": "clientSecret",
+                                "type": "Microsoft.Common.PasswordBox",
+                                "label": {
+                                  "password": "Prosimo Service Principal Secret"
+                                },
+                                "toolTip": "",
+                                "constraints": {
+                                  "required": true
+                                },
+                                "options": {
+                                  "hideConfirmation": true
+                                },
+                                "visible": true
+                              },                                    
                                 {
                                     "name": "prosimoTeamName",
                                     "type": "Microsoft.Common.TextBox",
@@ -43,7 +72,7 @@
                                     "visible": true
                                   },
                                   {
-                                    "name": "prosimoApiKey",
+                                    "name": "prosimoApiToken",
                                     "type": "Microsoft.Common.PasswordBox",
                                     "label": {
                                       "password": "Prosimo API Token"
@@ -56,7 +85,7 @@
                                       "hideConfirmation": true
                                     },
                                     "visible": true
-                                  },
+                                  },                                  
                                       {
                                     "name": "subscriptionApi",
                                     "type": "Microsoft.Solutions.ArmApiControl",
@@ -94,7 +123,11 @@
             "subscriptionId": "[steps('basics').resourceScope.subscription.id]",
             "parameters": {
                 "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]",
-                "subscriptionId": "[steps('basics').resourceScope.subscription.id]"
+                "subscriptionId": "[steps('basics').resourceScope.subscription.id]",
+                "prosimoTeamName": "[steps('basics').deploymentDetails.prosimoTeamName]",
+                "prosimoApiToken": "[steps('basics').deploymentDetails.prosimoApiToken]",
+                "clientId": "[steps('basics').deploymentDetails.clientId]",
+                "clientSecret": "[steps('basics').deploymentDetails.clientSecret]"
             }
         }        
     }

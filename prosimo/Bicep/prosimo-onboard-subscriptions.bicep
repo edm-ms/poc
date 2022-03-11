@@ -1,7 +1,6 @@
 targetScope = 'managementGroup'
 
-param location string = resourceGroupName().location
-param resourceGroupName string
+param location string = deployment().location
 param prosimoTeamName string
 param prosimoApiToken string
 param clientId string
@@ -12,11 +11,21 @@ param time string = utcNow()
 
 var scriptRole = json(loadTextContent('../Parameters/script-role.json'))
 var reader = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
-
-
+var resourceGroupName = 'removeThis-${guid(subscriptionGuid)}'
+var subscriptionGuid = replace(subscriptionId, '/subscriptions/', '')
 var tags = {
   'Created for': 'https://${prosimoTeamName}.admin.prosimo.io/'
   'Action': 'Please delete, this is no longer needed'
+}
+
+module scriptResourceGroup 'Modules/resource-group.bicep' = {
+  scope: subscription(subscriptionGuid)
+  name: 'scriptRg-${time}'
+  params: {
+    resourceGroupName: resourceGroupName
+    location: location
+    tags: tags
+  }
 }
 
 module createScriptRole './Modules/define-role-mgt-scope.bicep' = {

@@ -6,6 +6,8 @@ param(
     [string] [Parameter(Mandatory=$true)] $tenantId
   )
 
+  Install-Module -Name Az.ResourceGraph -Force
+
     $headers = @{
       'content-type' = 'application/json'
       'Prosimo-ApiToken' = $prosimoApiToken
@@ -38,4 +40,5 @@ param(
     }
 
 
+#enhancement ---> scan at mgt group to find subs to onboard
     $subscriptionList = (Search-AzGraph -Query "ResourceContainers | where type =~ 'microsoft.resources/subscriptions'" -ManagementGroup $managementGroupName).id 

@@ -15,7 +15,7 @@
                             "visible": true,
                             "options": {
                               "icon": "Info",
-                              "text": "Select a subscription and resource group to store a deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
+                              "text": "Select a subscription to store the deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
                             }
                           },
                         {

@@ -132,38 +132,7 @@
                             ]
                         }
                     ]
-                },
-                {
-                  "name": "prosimoItems",
-                  "label": "Prosimo Subscription Onboarding",
-                  "elements": [
-                    {
-                      "name": "managementOnboarding",
-                      "type": "Microsoft.Common.OptionsGroup",
-                      "label": "Onboard all Subscriptions in Management Group",
-                      "defaultValue": "Yes (Recommended)",
-                      "toolTip": "",
-                      "constraints": {
-                          "required": false,
-                          "allowedValues": [
-                              {
-                                  "label": "Yes (Recommended)",
-                                  "value": true
-                              },
-                              {
-                                  "label": "No",
-                                  "value": false
-                              }
-                          ]
-                      },
-                      "visible": true
-                  },
-                  {
-                    "name": "resourceScope",
-                    "type": "Microsoft.Common.ResourceScope"
-                  }
-                ]
-                }                
+                }             
             ]
         },
         "outputs": {

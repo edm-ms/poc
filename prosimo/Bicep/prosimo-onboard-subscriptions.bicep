@@ -1,3 +1,5 @@
+targetScope = 'managementGroup'
+
 param location string = resourceGroup().location
 param prosimoTeamName string
 param prosimoApiToken string
@@ -16,7 +18,7 @@ var tags = {
   'Action': 'Please delete, this is no longer needed'
 }
 
-module createScriptRole 'define-role.bicep' = {
+module createScriptRole './Modules/define-role-mgt-scope.bicep' = {
   name: 'scriptRole-${time}'
   params: {
     assignmentScope: subscriptionId
@@ -26,7 +28,8 @@ module createScriptRole 'define-role.bicep' = {
   }
 }
 
-module createIdentity 'managedIdentity.bicep' = {
+module createIdentity './Modules/managed-identity.bicep' = {
+  scope: resourceGroup(subscriptionId, 'rg')
   name: 'managedIdentity-${time}'
   params: {
     identityName: 'prosimo-sub-onboard'
@@ -35,7 +38,7 @@ module createIdentity 'managedIdentity.bicep' = {
   }
 }
 
-module assignReaderRole 'assign-role.bicep' = {
+module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
   name: 'readerRole-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
@@ -45,7 +48,8 @@ module assignReaderRole 'assign-role.bicep' = {
   }
 }
 
-module assignScriptRole 'assign-role.bicep' = {
+module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
+  scope: subscription(subscriptionId)
   name: 'scriptRole-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
@@ -55,7 +59,8 @@ module assignScriptRole 'assign-role.bicep' = {
   }
 }
 
-module onboardSubscriptions 'prosimo-deploymentScript.bicep' = {
+module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
+  scope: resourceGroup(subscriptionId, 'rg')
   name: 'onboardSubs-${time}'
   params: {
     clientId: clientId
@@ -68,3 +73,5 @@ module onboardSubscriptions 'prosimo-deploymentScript.bicep' = {
     location: location
   }
 }
+
+

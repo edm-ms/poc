@@ -41,6 +41,9 @@ module createScriptRole './Modules/define-role-sub-scope.bicep' = {
 
 module createIdentity './Modules/managed-identity.bicep' = {
   scope: resourceGroup(subscriptionGuid, resourceGroupName)
+  dependsOn: [
+    scriptResourceGroup
+  ]
   name: 'managedIdentity-${time}'
   params: {
     identityName: 'prosimo-sub-onboard'
@@ -72,6 +75,9 @@ module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
 
 module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
   scope: resourceGroup(subscriptionGuid, resourceGroupName)
+  dependsOn: [
+    scriptResourceGroup
+  ]
   name: 'onboardSubs-${time}'
   params: {
     clientId: clientId

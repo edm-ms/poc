@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "6367791383741335500"
+      "templateHash": "7412463211553507654"
     }
   },
   "parameters": {
@@ -251,7 +251,10 @@
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('scriptRg-{0}', parameters('time')))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -496,7 +499,8 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))]",
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('scriptRg-{0}', parameters('time')))]"
       ]
     }
   ]

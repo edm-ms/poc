@@ -2,311 +2,52 @@ targetScope = 'managementGroup'
 
 param managementGroupId string
 param managementGroupName string
+param subscriptionId string
 param principalId array 
+param time string = utcNow()
 
-var prosimoAppRole = {
-  'properties': {
-      'roleName': 'ProsimoAppRole'
-      'description': 'Has required permissions to onboard apps in a customers subscription'
-      'assignableScopes': []
-      'permissions': [
-          {
-              'actions': [
-                  'Microsoft.Resources/tags/delete'
-                  'Microsoft.Resources/tags/write'
-                  'Microsoft.Resources/tags/read'
-                  'Microsoft.Resources/subscriptions/resourceGroups/write'
-                  'Microsoft.Resources/subscriptions/resourceGroups/read'
-                  'Microsoft.Resources/subscriptions/resources/read'
-                  'Microsoft.Resources/subscriptions/resourcegroups/resources/read'
-                  'Microsoft.Resources/subscriptions/resourcegroups/deployments/operationstatuses/read'
-                  'Microsoft.Resources/subscriptions/resourceGroups/read'
-                  'Microsoft.Resources/subscriptions/providers/read'
-                  'Microsoft.Resources/subscriptions/operationresults/read'
-                  'Microsoft.Resources/subscriptions/locations/read'
-                  'Microsoft.Resources/subscriptions/read'
-                  'Microsoft.Resources/resources/read'
-                  'Microsoft.Resources/providers/read'
-                  'Microsoft.Resources/deployments/operations/read'
-                  'Microsoft.Resources/checkResourceName/action'
-                  'Microsoft.Authorization/roleDefinitions/read'
-                  'Microsoft.Authorization/roleAssignments/read'
-                  'Microsoft.Authorization/policySetDefinitions/read'
-                  'Microsoft.Authorization/policyAssignments/read'
-                  'Microsoft.Authorization/policyDefinitions/read'
-                  'Microsoft.ManagedIdentity/userAssignedIdentities/read'
-                  'Microsoft.ManagedIdentity/identities/read'
-                  'Microsoft.Compute/virtualMachines/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/vmSizes/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/networkInterfaces/ipConfigurations/publicIPAddresses/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/networkInterfaces/ipConfigurations/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/networkInterfaces/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/publicIPAddresses/read'
-                  'Microsoft.Compute/virtualMachineScaleSets/networkInterfaces/read'
-                  'Microsoft.Network/virtualNetworkGateways/read'
-                  'Microsoft.Network/virtualNetworks/virtualMachines/read'
-                  'Microsoft.Network/virtualNetworks/subnets/virtualMachines/read'
-                  'Microsoft.Network/virtualNetworks/subnets/contextualServiceEndpointPolicies/read'
-                  'Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action'
-                  'Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action'
-                  'Microsoft.Network/virtualNetworks/subnets/join/action'
-                  'Microsoft.Network/virtualNetworks/subnets/write'
-                  'Microsoft.Network/virtualNetworks/subnets/read'
-                  'Microsoft.Network/virtualNetworks/virtualNetworkPeerings/delete'
-                  'Microsoft.Network/virtualNetworks/virtualNetworkPeerings/write'
-                  'Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read'
-                  'Microsoft.Network/virtualNetworks/usages/read'
-                  'Microsoft.Network/virtualNetworks/checkIpAddressAvailability/read'
-                  'Microsoft.Network/virtualNetworks/join/action'
-                  'Microsoft.Network/virtualNetworks/peer/action'
-                  'Microsoft.Network/virtualNetworks/joinLoadBalancer/action'
-                  'Microsoft.Network/virtualNetworks/write'
-                  'Microsoft.Network/virtualNetworks/read'
-                  'Microsoft.Network/serviceEndpointPolicies/serviceEndpointPolicyDefinitions/delete'
-                  'Microsoft.Network/serviceEndpointPolicies/serviceEndpointPolicyDefinitions/write'
-                  'Microsoft.Network/serviceEndpointPolicies/serviceEndpointPolicyDefinitions/read'
-                  'Microsoft.Network/serviceEndpointPolicies/joinSubnet/action'
-                  'Microsoft.Network/serviceEndpointPolicies/join/action'
-                  'Microsoft.Network/serviceEndpointPolicies/delete'
-                  'Microsoft.Network/serviceEndpointPolicies/write'
-                  'Microsoft.Network/serviceEndpointPolicies/read'
-                  'Microsoft.Network/routeTables/routes/delete'
-                  'Microsoft.Network/routeTables/routes/write'
-                  'Microsoft.Network/routeTables/routes/read'
-                  'Microsoft.Network/routeTables/join/action'
-                  'Microsoft.Network/routeTables/write'
-                  'Microsoft.Network/routeTables/read'
-                  'Microsoft.Network/routeFilters/routeFilterRules/write'
-                  'Microsoft.Network/routeFilters/routeFilterRules/read'
-                  'Microsoft.Network/routeFilters/write'
-                  'Microsoft.Network/routeFilters/join/action'
-                  'Microsoft.Network/routeFilters/read'
-                  'Microsoft.Network/locations/supportedVirtualMachineSizes/read'
-                  'Microsoft.Network/locations/virtualNetworkAvailableEndpointServices/read'
-                  'Microsoft.Network/locations/usages/read'
-                  'Microsoft.Network/locations/serviceTags/read'
-                  'Microsoft.Network/locations/operationResults/read'
-                  'Microsoft.Network/locations/operations/read'
-                  'Microsoft.Network/locations/availableServiceAliases/read'
-                  'Microsoft.Network/locations/availablePrivateEndpointTypes/read'
-                  'Microsoft.Network/locations/autoApprovedPrivateLinkServices/read'
-                  'Microsoft.Network/locations/setLoadBalancerFrontendPublicIpAddresses/action'
-                  'Microsoft.Network/locations/checkPrivateLinkServiceVisibility/action'
-                  'Microsoft.Network/locations/checkAcceleratedNetworkingSupport/action'
-                  'Microsoft.Network/virtualWans/virtualHubs/read'
-                  'Microsoft.Network/virtualWans/write'
-                  'Microsoft.Network/virtualWans/read'
-                  'Microsoft.Network/virtualHubs/hubRouteTables/write'
-                  'Microsoft.Network/virtualHubs/hubRouteTables/read'
-                  'Microsoft.Network/virtualHubs/routeTables/write'
-                  'Microsoft.Network/virtualHubs/routeTables/read'
-                  'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections/delete'
-                  'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections/write'
-                  'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections/read'
-                  'Microsoft.Network/virtualHubs/effectiveRoutes/action'
-                  'Microsoft.Network/virtualHubs/write'
-                  'Microsoft.Network/virtualHubs/read'
-                  'Microsoft.Network/publicIPPrefixes/join/action'
-                  'Microsoft.Network/publicIPPrefixes/write'
-                  'Microsoft.Network/publicIPPrefixes/read'
-                  'Microsoft.Network/publicIPAddresses/join/action'
-                  'Microsoft.Network/publicIPAddresses/write'
-                  'Microsoft.Network/publicIPAddresses/read'
-                  'Microsoft.Network/privateLinkServices/privateEndpointConnections/delete'
-                  'Microsoft.Network/privateLinkServices/privateEndpointConnections/write'
-                  'Microsoft.Network/privateLinkServices/privateEndpointConnections/read'
-                  'Microsoft.Network/privateLinkServices/delete'
-                  'Microsoft.Network/privateLinkServices/write'
-                  'Microsoft.Network/privateLinkServices/read'
-                  'Microsoft.Network/privateEndpointRedirectMaps/write'
-                  'Microsoft.Network/privateEndpointRedirectMaps/read'
-                  'Microsoft.Network/privateEndpoints/privateDnsZoneGroups/write'
-                  'Microsoft.Network/privateEndpoints/privateDnsZoneGroups/read'
-                  'Microsoft.Network/privateEndpoints/delete'
-                  'Microsoft.Network/privateEndpoints/write'
-                  'Microsoft.Network/privateEndpoints/read'
-                  'Microsoft.Network/networkSecurityGroups/securityRules/delete'
-                  'Microsoft.Network/networkSecurityGroups/securityRules/write'
-                  'Microsoft.Network/networkSecurityGroups/securityRules/read'
-                  'Microsoft.Network/networkSecurityGroups/defaultSecurityRules/read'
-                  'Microsoft.Network/networkSecurityGroups/join/action'
-                  'Microsoft.Network/networkSecurityGroups/delete'
-                  'Microsoft.Network/networkSecurityGroups/write'
-                  'Microsoft.Network/networkSecurityGroups/read'
-                  'Microsoft.Network/networkProfiles/setNetworkInterfaces/action'
-                  'Microsoft.Network/networkProfiles/removeContainers/action'
-                  'Microsoft.Network/networkProfiles/setContainers/action'
-                  'Microsoft.Network/networkProfiles/delete'
-                  'Microsoft.Network/networkProfiles/write'
-                  'Microsoft.Network/networkProfiles/read'
-                  'Microsoft.Network/networkInterfaces/loadBalancers/read'
-                  'Microsoft.Network/networkInterfaces/ipconfigurations/join/action'
-                  'Microsoft.Network/networkInterfaces/ipconfigurations/read'
-                  'Microsoft.Network/networkInterfaces/UpdateParentNicAttachmentOnElasticNic/action'
-                  'Microsoft.Network/networkInterfaces/effectiveNetworkSecurityGroups/action'
-                  'Microsoft.Network/networkInterfaces/effectiveRouteTable/action'
-                  'Microsoft.Network/networkInterfaces/delete'
-                  'Microsoft.Network/networkInterfaces/join/action'
-                  'Microsoft.Network/networkInterfaces/write'
-                  'Microsoft.Network/networkInterfaces/read'
-                  'Microsoft.Network/natGateways/join/action'
-                  'Microsoft.Network/loadBalancers/virtualMachines/read'
-                  'Microsoft.Network/loadBalancers/probes/join/action'
-                  'Microsoft.Network/loadBalancers/probes/read'
-                  'Microsoft.Network/loadBalancers/outboundRules/read'
-                  'Microsoft.Network/loadBalancers/networkInterfaces/read'
-                  'Microsoft.Network/loadBalancers/loadBalancingRules/read'
-                  'Microsoft.Network/loadBalancers/inboundNatRules/join/action'
-                  'Microsoft.Network/loadBalancers/inboundNatRules/write'
-                  'Microsoft.Network/loadBalancers/inboundNatRules/read'
-                  'Microsoft.Network/loadBalancers/inboundNatPools/join/action'
-                  'Microsoft.Network/loadBalancers/inboundNatPools/read'
-                  'Microsoft.Network/loadBalancers/frontendIPConfigurations/join/action'
-                  'Microsoft.Network/loadBalancers/frontendIPConfigurations/read'
-                  'Microsoft.Network/loadBalancers/backendAddressPools/join/action'
-                  'Microsoft.Network/loadBalancers/backendAddressPools/write'
-                  'Microsoft.Network/loadBalancers/backendAddressPools/read'
-                  'Microsoft.Network/loadBalancers/write'
-                  'Microsoft.Network/loadBalancers/read'
-                  'Microsoft.Network/ipGroups/join/action'
-                  'Microsoft.Network/ipGroups/updateReferences/action'
-                  'Microsoft.Network/ipGroups/validate/action'
-                  'Microsoft.Network/ipGroups/write'
-                  'Microsoft.Network/ipGroups/read'
-                  'Microsoft.Network/ipAllocations/delete'
-                  'Microsoft.Network/ipAllocations/write'
-                  'Microsoft.Network/ipAllocations/read'
-                  'Microsoft.Network/customIpPrefixes/delete'
-                  'Microsoft.Network/customIpPrefixes/write'
-                  'Microsoft.Network/customIpPrefixes/read'
-                  'Microsoft.Network/azureFirewallFqdnTags/read'
-                  'Microsoft.Network/azurefirewalls/read'
-                  'Microsoft.Network/operations/read'
-                  'Microsoft.Network/privateDnsZones/A/delete'
-                  'Microsoft.Network/privateDnsZones/A/read'
-                  'Microsoft.Network/privateDnsZones/A/write'
-                  'Microsoft.Network/privateDnsZones/SOA/read'
-                  'Microsoft.Network/privateDnsZones/SOA/write'
-                  'Microsoft.Network/privateDnsZones/delete'
-                  'Microsoft.Network/privateDnsZones/read'
-                  'Microsoft.Network/privateDnsZones/write'
-                  'Microsoft.Network/privateDnsZones/virtualNetworkLinks/delete'
-                  'Microsoft.Network/privateDnsZones/virtualNetworkLinks/read'
-                  'Microsoft.Network/privateDnsZones/virtualNetworkLinks/write'
-                  'Microsoft.Network/applicationGatewayAvailableSslOptions/predefinedPolicies/read'
-                  'Microsoft.Network/applicationGatewayAvailableSslOptions/read'
-                  'Microsoft.Network/applicationGatewayAvailableServerVariables/read'
-                  'Microsoft.Network/applicationGatewayAvailableResponseHeaders/read'
-                  'Microsoft.Network/applicationGatewayAvailableRequestHeaders/read'
-                  'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/write'
-                  'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/read'
-                  'Microsoft.Network/applicationGateways/backendAddressPools/join/action'
-                  'Microsoft.Network/applicationGateways/getBackendHealthOnDemand/action'
-                  'Microsoft.Network/applicationGateways/backendhealth/action'
-                  'Microsoft.Network/applicationGateways/write'
-                  'Microsoft.Network/applicationGateways/read'
-              ]
-              'notActions': []
-              'dataActions': []
-              'notDataActions': []
-          }
-      ]
+var prosimoAppRoleDefinition = json(loadTextContent('../Parameters/prosimo-app-role.json'))
+var prosimoInfraRoleDefinition = json(loadTextContent('../Parameters/prosimo-infra-role.json'))
+var prosimoServicePrincipal = principalId[0]
+
+module prosimoAppRole 'define-role-mgt-scope.bicep' = {
+  name: 'prosimoAppRole-${time}'
+  params: {
+    assignmentScope: managementGroupId
+    roleDescription: prosimoAppRoleDefinition.properties.description
+    roleName: '${prosimoAppRoleDefinition.properties.roleName}-${managementGroupName}'
+    rolePermissions: prosimoAppRoleDefinition.properties.permissions
   }
 }
 
-var prosimoInfraRole = {
-  'properties': {
-      'roleName': 'ProsimoEdgeRole'
-      'description': 'Has required permissions for creating a prosimo edge in a subscription'
-      'assignableScopes': []
-      'permissions': [
-          {
-              'actions': [
-                'Microsoft.Authorization/*/read'
-                'Microsoft.Compute/*/read'
-                'Microsoft.Compute/sshPublicKeys/write'
-                'Microsoft.Compute/virtualMachines/*'
-                'Microsoft.Compute/virtualMachineScaleSets/*'
-                'Microsoft.ContainerService/*/read'
-                'Microsoft.ContainerService/managedClusters/*'
-                'Microsoft.ManagedIdentity/*/read'
-                'Microsoft.Network/*/action'
-                'Microsoft.Network/*/read'
-                'Microsoft.Network/applicationGateways/*'
-                'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/*'
-                'Microsoft.Network/customIpPrefixes/*'
-                'Microsoft.Network/frontDoors/*'
-                'Microsoft.Network/ipAllocations/*'
-                'Microsoft.Network/ipGroups/*'
-                'Microsoft.Network/loadBalancers/*'
-                'Microsoft.Network/managedClusters/*'
-                'Microsoft.Network/networkInterfaces/*'
-                'Microsoft.Network/networkProfiles/*'
-                'Microsoft.Network/networkSecurityGroups/*'
-                'Microsoft.Network/privateDnsZones/*'
-                'Microsoft.Network/privateEndpointRedirectMaps/*'
-                'Microsoft.Network/privateEndpoints/*'
-                'Microsoft.Network/privateLinkServices/*'
-                'Microsoft.Network/publicIPAddresses/*'
-                'Microsoft.Network/publicIPPrefixes/*'
-                'Microsoft.Network/routeFilters/*'
-                'Microsoft.Network/routeTables/*'
-                'Microsoft.Network/serviceEndpointPolicies/*'
-                'Microsoft.Network/virtualHubs/*'
-                'Microsoft.Network/virtualNetworks/*'
-                'Microsoft.Network/virtualWans/*'
-                'Microsoft.Resources/*/read'
-                'Microsoft.Resources/checkResourceName/action'
-                'Microsoft.Resources/deployments/*'
-                'Microsoft.Resources/subscriptions/resourceGroups/*'
-                'Microsoft.Resources/tags/*'
-            ]
-              'notActions': []
-              'dataActions': []
-              'notDataActions': []
-          }
-      ]
+module prosimoInfraRole 'define-role-sub-scope.bicep' = {
+  scope: subscription(subscriptionId)
+  name: 'prosimoInfraRole-${time}'
+  params: {
+    assignmentScope: subscriptionId
+    roleDescription: prosimoInfraRoleDefinition.properties.description
+    roleName: '${prosimoInfraRoleDefinition.properties.roleName}-${managementGroupName}'
+    rolePermissions: prosimoInfraRoleDefinition.properties.permissions
   }
 }
 
-resource prosimoAppRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoAppRole.properties.roleName, managementGroupId)
-  properties: {
-    permissions: prosimoAppRole.properties.permissions
-    assignableScopes: [
-      managementGroupId
-    ]
-    description: prosimoAppRole.properties.description
-    roleName: '${prosimoAppRole.properties.roleName}-${toUpper(managementGroupName)}'
-  }
-}
-
-resource prosimoInfraRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: guid(prosimoInfraRole.properties.roleName, managementGroupId)
-  properties: {
-    permissions: prosimoInfraRole.properties.permissions
-    assignableScopes: [
-      managementGroupId
-    ]
-    description: prosimoInfraRole.properties.description
-    roleName: '${prosimoInfraRole.properties.roleName}-${toUpper(managementGroupName)}'
-  }
-}
-
-resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, 'ProsimoAppRole')
-  properties: {
-    principalId: principalId[0]
-    roleDefinitionId: prosimoAppRoleDefinition.id
+module assignProsimoApp 'assign-role-mgt-scope.bicep' = {
+  name: 'assignProsimoApp-${time}'
+  params: {
+    assignmentGuid: guid(managementGroupId, prosimoAppRole.outputs.roleId, prosimoServicePrincipal)
+    principalId: prosimoServicePrincipal
     principalType: 'ServicePrincipal'
+    roleId: prosimoAppRole.outputs.roleId
   }
 }
 
-resource assignProsimoInfraRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(managementGroupId, 'ProsimoInfraRole')
-  properties: {
-    principalId: principalId[0]
-    roleDefinitionId: prosimoInfraRoleDefinition.id
+module assignProsimoInfra 'assign-role-sub-scope.bicep' = {
+  scope: subscription(subscriptionId)
+  name: 'assignProsimoInfra-${time}'
+  params: {
+    assignmentGuid: guid(subscriptionId, prosimoInfraRole.outputs.roleId, prosimoServicePrincipal)
+    principalId: prosimoServicePrincipal
     principalType: 'ServicePrincipal'
+    roleId: prosimoInfraRole.outputs.roleId
   }
 }

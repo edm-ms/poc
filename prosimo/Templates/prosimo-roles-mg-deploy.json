@@ -1,0 +1,314 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.1272.37030",
+      "templateHash": "5914706360206158378"
+    }
+  },
+  "parameters": {
+    "managementGroupId": {
+      "type": "string"
+    },
+    "managementGroupName": {
+      "type": "string"
+    },
+    "subscriptionId": {
+      "type": "string"
+    },
+    "principalId": {
+      "type": "array"
+    },
+    "time": {
+      "type": "string",
+      "defaultValue": "[utcNow()]"
+    }
+  },
+  "variables": {
+    "prosimoAppRoleDefinition": "[json('{\n    \"properties\": {\n        \"roleName\": \"ProsimoAppRole\",\n        \"description\": \"Has required permissions to onboard apps in a customer''s subscription\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Resources/tags/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/routeFilters/*\"\n                ],\n                \"notActions\": [],\n                \"dataActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}\n')]",
+    "prosimoInfraRoleDefinition": "[json('{\n    \"properties\": {\n        \"description\": \"Has required permissions for creating a prosimo edge in a subscription\",\n        \"roleName\": \"ProsimoEdgeRole\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Compute/sshPublicKeys/write\",\n                    \"Microsoft.Compute/virtualMachines/*\",\n                    \"Microsoft.Compute/virtualMachineScaleSets/*\",\n                    \"Microsoft.ContainerService/*/read\",\n                    \"Microsoft.ContainerService/managedClusters/*\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/frontDoors/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/managedClusters/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateEndpoints/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/routeFilters/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/deployments/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/tags/*\"\n                ],\n                \"dataActions\": [],\n                \"notActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}')]",
+    "prosimoServicePrincipal": "[parameters('principalId')[0]]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('prosimoAppRole-{0}', parameters('time'))]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "assignmentScope": {
+            "value": "[parameters('managementGroupId')]"
+          },
+          "roleDescription": {
+            "value": "[variables('prosimoAppRoleDefinition').properties.description]"
+          },
+          "roleName": {
+            "value": "[format('{0}-{1}', variables('prosimoAppRoleDefinition').properties.roleName, parameters('managementGroupName'))]"
+          },
+          "rolePermissions": {
+            "value": "[variables('prosimoAppRoleDefinition').properties.permissions]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "17634948781749838883"
+            }
+          },
+          "parameters": {
+            "assignmentScope": {
+              "type": "string"
+            },
+            "rolePermissions": {
+              "type": "array"
+            },
+            "roleDescription": {
+              "type": "string"
+            },
+            "roleName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleDefinitions",
+              "apiVersion": "2018-01-01-preview",
+              "name": "[guid(parameters('roleName'), parameters('assignmentScope'))]",
+              "properties": {
+                "permissions": "[parameters('rolePermissions')]",
+                "assignableScopes": [
+                  "[parameters('assignmentScope')]"
+                ],
+                "description": "[parameters('roleDescription')]",
+                "roleName": "[parameters('roleName')]"
+              }
+            }
+          ],
+          "outputs": {
+            "roleId": {
+              "type": "string",
+              "value": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/roleDefinitions', guid(parameters('roleName'), parameters('assignmentScope')))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('prosimoInfraRole-{0}', parameters('time'))]",
+      "subscriptionId": "[parameters('subscriptionId')]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "assignmentScope": {
+            "value": "[parameters('subscriptionId')]"
+          },
+          "roleDescription": {
+            "value": "[variables('prosimoInfraRoleDefinition').properties.description]"
+          },
+          "roleName": {
+            "value": "[format('{0}-{1}', variables('prosimoInfraRoleDefinition').properties.roleName, parameters('managementGroupName'))]"
+          },
+          "rolePermissions": {
+            "value": "[variables('prosimoInfraRoleDefinition').properties.permissions]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "12129073418370002024"
+            }
+          },
+          "parameters": {
+            "assignmentScope": {
+              "type": "string"
+            },
+            "rolePermissions": {
+              "type": "array"
+            },
+            "roleDescription": {
+              "type": "string"
+            },
+            "roleName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleDefinitions",
+              "apiVersion": "2018-01-01-preview",
+              "name": "[guid(parameters('roleName'), parameters('assignmentScope'))]",
+              "properties": {
+                "permissions": "[parameters('rolePermissions')]",
+                "assignableScopes": [
+                  "[parameters('assignmentScope')]"
+                ],
+                "description": "[parameters('roleDescription')]",
+                "roleName": "[parameters('roleName')]"
+              }
+            }
+          ],
+          "outputs": {
+            "roleId": {
+              "type": "string",
+              "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', guid(parameters('roleName'), parameters('assignmentScope')))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('assignProsimoApp-{0}', parameters('time'))]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "assignmentGuid": {
+            "value": "[guid(parameters('managementGroupId'), reference(extensionResourceId(managementGroup().id, 'Microsoft.Resources/deployments', format('prosimoAppRole-{0}', parameters('time')))).outputs.roleId.value, variables('prosimoServicePrincipal'))]"
+          },
+          "principalId": {
+            "value": "[variables('prosimoServicePrincipal')]"
+          },
+          "principalType": {
+            "value": "ServicePrincipal"
+          },
+          "roleId": {
+            "value": "[reference(extensionResourceId(managementGroup().id, 'Microsoft.Resources/deployments', format('prosimoAppRole-{0}', parameters('time')))).outputs.roleId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "2500173097277920992"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "roleId": {
+              "type": "string"
+            },
+            "principalType": {
+              "type": "string"
+            },
+            "assignmentGuid": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-08-01-preview",
+              "name": "[parameters('assignmentGuid')]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[parameters('roleId')]",
+                "principalType": "[parameters('principalType')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(managementGroup().id, 'Microsoft.Resources/deployments', format('prosimoAppRole-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('assignProsimoInfra-{0}', parameters('time'))]",
+      "subscriptionId": "[parameters('subscriptionId')]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "assignmentGuid": {
+            "value": "[guid(parameters('subscriptionId'), reference(subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value, variables('prosimoServicePrincipal'))]"
+          },
+          "principalId": {
+            "value": "[variables('prosimoServicePrincipal')]"
+          },
+          "principalType": {
+            "value": "ServicePrincipal"
+          },
+          "roleId": {
+            "value": "[reference(subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "1132713169058151652"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "roleId": {
+              "type": "string"
+            },
+            "principalType": {
+              "type": "string"
+            },
+            "assignmentGuid": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-08-01-preview",
+              "name": "[parameters('assignmentGuid')]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[parameters('roleId')]",
+                "principalType": "[parameters('principalType')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))]"
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "5914706360206158378"
+      "templateHash": "8928409639670871702"
     }
   },
   "parameters": {
@@ -28,8 +28,9 @@
   },
   "variables": {
     "prosimoAppRoleDefinition": "[json('{\n    \"properties\": {\n        \"roleName\": \"ProsimoAppRole\",\n        \"description\": \"Has required permissions to onboard apps in a customer''s subscription\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Resources/tags/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/routeFilters/*\"\n                ],\n                \"notActions\": [],\n                \"dataActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}\n')]",
-    "prosimoInfraRoleDefinition": "[json('{\n    \"properties\": {\n        \"description\": \"Has required permissions for creating a prosimo edge in a subscription\",\n        \"roleName\": \"ProsimoEdgeRole\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Compute/sshPublicKeys/write\",\n                    \"Microsoft.Compute/virtualMachines/*\",\n                    \"Microsoft.Compute/virtualMachineScaleSets/*\",\n                    \"Microsoft.ContainerService/*/read\",\n                    \"Microsoft.ContainerService/managedClusters/*\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/frontDoors/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/managedClusters/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateEndpoints/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/routeFilters/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/deployments/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/tags/*\"\n                ],\n                \"dataActions\": [],\n                \"notActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}')]",
-    "prosimoServicePrincipal": "[parameters('principalId')[0]]"
+    "prosimoInfraRoleDefinition": "[json('{\n    \"properties\": {\n        \"description\": \"Has required permissions for creating a prosimo edge in a subscription\",\n        \"roleName\": \"ProsimoEdgeRole\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Compute/sshPublicKeys/write\",\n                    \"Microsoft.Compute/virtualMachines/*\",\n                    \"Microsoft.Compute/virtualMachineScaleSets/*\",\n                    \"Microsoft.ContainerService/*/read\",\n                    \"Microsoft.ContainerService/managedClusters/*\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/frontDoors/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateEndpoints/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/routeFilters/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/deployments/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/tags/*\"\n                ],\n                \"dataActions\": [],\n                \"notActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}')]",
+    "prosimoServicePrincipal": "[parameters('principalId')[0]]",
+    "subscriptionGuid": "[replace(parameters('subscriptionId'), '/subscriptions/', '')]"
   },
   "resources": [
     {
@@ -108,7 +109,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('prosimoInfraRole-{0}', parameters('time'))]",
-      "subscriptionId": "[parameters('subscriptionId')]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
       "location": "[deployment().location]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -123,7 +124,7 @@
             "value": "[variables('prosimoInfraRoleDefinition').properties.description]"
           },
           "roleName": {
-            "value": "[format('{0}-{1}', variables('prosimoInfraRoleDefinition').properties.roleName, parameters('managementGroupName'))]"
+            "value": "[format('{0}-{1}', variables('prosimoInfraRoleDefinition').properties.roleName, variables('subscriptionGuid'))]"
           },
           "rolePermissions": {
             "value": "[variables('prosimoInfraRoleDefinition').properties.permissions]"
@@ -247,7 +248,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "[format('assignProsimoInfra-{0}', parameters('time'))]",
-      "subscriptionId": "[parameters('subscriptionId')]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
       "location": "[deployment().location]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -256,7 +257,7 @@
         "mode": "Incremental",
         "parameters": {
           "assignmentGuid": {
-            "value": "[guid(parameters('subscriptionId'), reference(subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value, variables('prosimoServicePrincipal'))]"
+            "value": "[guid(parameters('subscriptionId'), reference(subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value, variables('prosimoServicePrincipal'))]"
           },
           "principalId": {
             "value": "[variables('prosimoServicePrincipal')]"
@@ -265,7 +266,7 @@
             "value": "ServicePrincipal"
           },
           "roleId": {
-            "value": "[reference(subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value]"
+            "value": "[reference(subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))).outputs.roleId.value]"
           }
         },
         "template": {
@@ -307,7 +308,7 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId(parameters('subscriptionId'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))]"
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))]"
       ]
     }
   ]

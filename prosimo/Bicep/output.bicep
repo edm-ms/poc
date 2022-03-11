@@ -1,7 +1,7 @@
 
-
-param subscriptionList array
 param subscriptionId string
 
-output subscriptions array = subscriptionList
+var subFormat = replace(subscriptionId, '/subscriptions/', '')
+
 output subscriptionId string = subscriptionId
+output subFormat string = subFormat

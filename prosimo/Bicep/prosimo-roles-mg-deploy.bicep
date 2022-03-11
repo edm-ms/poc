@@ -9,6 +9,7 @@ param time string = utcNow()
 var prosimoAppRoleDefinition = json(loadTextContent('../Parameters/prosimo-app-role.json'))
 var prosimoInfraRoleDefinition = json(loadTextContent('../Parameters/prosimo-infra-role.json'))
 var prosimoServicePrincipal = principalId[0]
+var subscriptionGuid = replace(subscriptionId, '/subscriptions/', '')
 
 module prosimoAppRole 'define-role-mgt-scope.bicep' = {
   name: 'prosimoAppRole-${time}'
@@ -21,12 +22,12 @@ module prosimoAppRole 'define-role-mgt-scope.bicep' = {
 }
 
 module prosimoInfraRole 'define-role-sub-scope.bicep' = {
-  scope: subscription(subscriptionId)
+  scope: subscription(subscriptionGuid)
   name: 'prosimoInfraRole-${time}'
   params: {
     assignmentScope: subscriptionId
     roleDescription: prosimoInfraRoleDefinition.properties.description
-    roleName: '${prosimoInfraRoleDefinition.properties.roleName}-${managementGroupName}'
+    roleName: '${prosimoInfraRoleDefinition.properties.roleName}-${subscriptionGuid}'
     rolePermissions: prosimoInfraRoleDefinition.properties.permissions
   }
 }
@@ -42,7 +43,7 @@ module assignProsimoApp 'assign-role-mgt-scope.bicep' = {
 }
 
 module assignProsimoInfra 'assign-role-sub-scope.bicep' = {
-  scope: subscription(subscriptionId)
+  scope: subscription(subscriptionGuid)
   name: 'assignProsimoInfra-${time}'
   params: {
     assignmentGuid: guid(subscriptionId, prosimoInfraRole.outputs.roleId, prosimoServicePrincipal)

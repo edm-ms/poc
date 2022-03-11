@@ -23,7 +23,6 @@
                     "Microsoft.Network/ipAllocations/*",
                     "Microsoft.Network/ipGroups/*",
                     "Microsoft.Network/loadBalancers/*",
-                    "Microsoft.Network/managedClusters/*",
                     "Microsoft.Network/networkInterfaces/*",
                     "Microsoft.Network/networkProfiles/*",
                     "Microsoft.Network/networkSecurityGroups/*",

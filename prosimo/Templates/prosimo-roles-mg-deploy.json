@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "12743336503689712286"
+      "templateHash": "7221765261591435666"
     }
   },
   "parameters": {
@@ -20,6 +20,9 @@
     },
     "principalId": {
       "type": "array"
+    },
+    "appId": {
+      "type": "string"
     },
     "time": {
       "type": "string",
@@ -323,7 +326,7 @@
     },
     "clientId": {
       "type": "string",
-      "value": "[variables('prosimoServicePrincipal')]"
+      "value": "[parameters('appId')]"
     }
   }
 }

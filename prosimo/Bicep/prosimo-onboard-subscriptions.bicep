@@ -1,6 +1,7 @@
 targetScope = 'managementGroup'
 
-param location string = resourceGroup().location
+param location string = resourceGroupName().location
+param resourceGroupName string
 param prosimoTeamName string
 param prosimoApiToken string
 param clientId string
@@ -29,7 +30,7 @@ module createScriptRole './Modules/define-role-mgt-scope.bicep' = {
 }
 
 module createIdentity './Modules/managed-identity.bicep' = {
-  scope: resourceGroup(subscriptionId, 'rg')
+  scope: resourceGroup(subscriptionId, resourceGroupName)
   name: 'managedIdentity-${time}'
   params: {
     identityName: 'prosimo-sub-onboard'
@@ -60,7 +61,7 @@ module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
 }
 
 module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
-  scope: resourceGroup(subscriptionId, 'rg')
+  scope: resourceGroup(subscriptionId, resourceGroupName)
   name: 'onboardSubs-${time}'
   params: {
     clientId: clientId
@@ -73,5 +74,3 @@ module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
     location: location
   }
 }
-
-

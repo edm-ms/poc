@@ -3,7 +3,8 @@ targetScope = 'managementGroup'
 param managementGroupId string
 param managementGroupName string
 param subscriptionId string
-param principalId array 
+param principalId array
+param appId string
 param time string = utcNow()
 
 var prosimoAppRoleDefinition = json(loadTextContent('../Parameters/prosimo-app-role.json'))
@@ -56,4 +57,4 @@ module assignProsimoInfra './Modules/assign-role-sub-scope.bicep' = {
 
 output subscriptionId string = subscriptionGuid
 output tenantId string = tenant().tenantId
-output clientId string = prosimoServicePrincipal
+output clientId string = appId

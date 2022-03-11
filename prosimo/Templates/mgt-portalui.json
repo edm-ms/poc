@@ -111,6 +111,7 @@
         "outputs": {
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
+                "appId": "[steps('basics').deploymentDetails.ServicePrincipal.appId]",
                 "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
                 "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",
                 "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]"

@@ -11,7 +11,7 @@ var prosimoInfraRoleDefinition = json(loadTextContent('../Parameters/prosimo-inf
 var prosimoServicePrincipal = principalId[0]
 var subscriptionGuid = replace(subscriptionId, '/subscriptions/', '')
 
-module prosimoAppRole 'define-role-mgt-scope.bicep' = {
+module prosimoAppRole './Modules/define-role-mgt-scope.bicep' = {
   name: 'prosimoAppRole-${time}'
   params: {
     assignmentScope: managementGroupId
@@ -21,7 +21,7 @@ module prosimoAppRole 'define-role-mgt-scope.bicep' = {
   }
 }
 
-module prosimoInfraRole 'define-role-sub-scope.bicep' = {
+module prosimoInfraRole './Modules/define-role-sub-scope.bicep' = {
   scope: subscription(subscriptionGuid)
   name: 'prosimoInfraRole-${time}'
   params: {
@@ -32,7 +32,7 @@ module prosimoInfraRole 'define-role-sub-scope.bicep' = {
   }
 }
 
-module assignProsimoApp 'assign-role-mgt-scope.bicep' = {
+module assignProsimoApp './Modules/assign-role-mgt-scope.bicep' = {
   name: 'assignProsimoApp-${time}'
   params: {
     assignmentGuid: guid(managementGroupId, prosimoAppRole.outputs.roleId, prosimoServicePrincipal)
@@ -42,7 +42,7 @@ module assignProsimoApp 'assign-role-mgt-scope.bicep' = {
   }
 }
 
-module assignProsimoInfra 'assign-role-sub-scope.bicep' = {
+module assignProsimoInfra './Modules/assign-role-sub-scope.bicep' = {
   scope: subscription(subscriptionGuid)
   name: 'assignProsimoInfra-${time}'
   params: {

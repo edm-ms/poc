@@ -50,7 +50,7 @@
                                     }
                                 },
                                 {
-                                    "name": "subscriptionIds",
+                                    "name": "subscriptionId",
                                     "label": "Subscription",
                                     "type": "Microsoft.Common.DropDown",
                                     "visible": true,
@@ -112,7 +112,8 @@
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
                 "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
-                "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]"
+                "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",
+                "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]"
             },
             "kind": "ManagementGroup",
             "location": "[steps('basics').resourceScope.location.name]",

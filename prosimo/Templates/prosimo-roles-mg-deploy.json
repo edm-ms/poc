@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "8928409639670871702"
+      "templateHash": "12743336503689712286"
     }
   },
   "parameters": {
@@ -311,5 +311,19 @@
         "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))]"
       ]
     }
-  ]
+  ],
+  "outputs": {
+    "subscriptionId": {
+      "type": "string",
+      "value": "[variables('subscriptionGuid')]"
+    },
+    "tenantId": {
+      "type": "string",
+      "value": "[tenant().tenantId]"
+    },
+    "clientId": {
+      "type": "string",
+      "value": "[variables('prosimoServicePrincipal')]"
+    }
+  }
 }

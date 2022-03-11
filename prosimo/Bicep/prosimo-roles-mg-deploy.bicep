@@ -52,3 +52,8 @@ module assignProsimoInfra './Modules/assign-role-sub-scope.bicep' = {
     roleId: prosimoInfraRole.outputs.roleId
   }
 }
+
+
+output subscriptionId string = subscriptionGuid
+output tenantId string = tenant().tenantId
+output clientId string = prosimoServicePrincipal

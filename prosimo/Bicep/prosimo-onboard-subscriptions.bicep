@@ -23,6 +23,16 @@ module createIdentity 'managedIdentity.bicep' = {
   }
 }
 
+module assignReaderRole 'assign-role.bicep' = {
+  name: 'readerRole-${time}'
+  params: {
+    principalId: createIdentity.outputs.identityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleId: reader
+    uniqueString: 
+  }
+}
+
 module onboardSubscriptions 'prosimo-deploymentScript.bicep' = {
   name: 'onboardSubs-${time}'
   params: {

@@ -148,6 +148,7 @@
           "location": "[steps('basics').resourceScope.location.name]",
           "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
           "parameters": {
+              "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",
               "subscriptionId": "[steps('azureStep').deploymentDetails.subscriptionId]",
               "prosimoTeamName": "[steps('prosimoStep').prosimoTeamName]",
               "prosimoApiToken": "[steps('prosimoStep').prosimoApiToken]",

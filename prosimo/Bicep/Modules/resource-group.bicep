@@ -1,6 +1,5 @@
 targetScope = 'subscription'
 
-
 param resourceGroupName string
 param location string = deployment().location
 param tags object

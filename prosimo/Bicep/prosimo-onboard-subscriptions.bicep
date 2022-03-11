@@ -28,7 +28,8 @@ module scriptResourceGroup 'Modules/resource-group.bicep' = {
   }
 }
 
-module createScriptRole './Modules/define-role-mgt-scope.bicep' = {
+module createScriptRole './Modules/define-role-sub-scope.bicep' = {
+  scope: subscription(subscriptionGuid)
   name: 'scriptRole-${time}'
   params: {
     assignmentScope: subscriptionId
@@ -59,7 +60,7 @@ module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
 }
 
 module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
-  scope: subscription(subscriptionId)
+  scope: subscription(subscriptionGuid)
   name: 'scriptRole-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
@@ -70,7 +71,7 @@ module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
 }
 
 module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
-  scope: resourceGroup(subscriptionId, resourceGroupName)
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
   name: 'onboardSubs-${time}'
   params: {
     clientId: clientId

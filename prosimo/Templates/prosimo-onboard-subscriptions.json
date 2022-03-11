@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "7412463211553507654"
+      "templateHash": "7910866394762596090"
     }
   },
   "parameters": {
@@ -38,7 +38,7 @@
   },
   "variables": {
     "scriptRole": "[json('{\n    \"roleName\": \"prosimo-script-minimum-privilege-for-deployment-principal\",\n    \"description\": \"Configure least privilege for the deployment principal in deployment script\",\n    \"type\": \"customRole\",\n    \"IsCustom\": true,\n    \"permissions\": [\n      {\n        \"actions\": [\n          \"Microsoft.Storage/storageAccounts/*\",\n          \"Microsoft.ContainerInstance/containerGroups/*\",\n          \"Microsoft.Resources/deployments/*\",\n          \"Microsoft.Resources/deploymentScripts/*\"\n        ]\n      }\n    ],\n    \"assignableScopes\": [\n      \"[subscription().id]\"\n    ]\n  }')]",
-    "reader": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+    "reader": "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
     "resourceGroupName": "[format('removeThis-{0}', guid(variables('subscriptionGuid')))]",
     "subscriptionGuid": "[replace(parameters('subscriptionId'), '/subscriptions/', '')]",
     "tags": {
@@ -277,7 +277,7 @@
             "value": "[variables('reader')]"
           },
           "assignmentGuid": {
-            "value": "[guid(parameters('subscriptionId'), variables('reader'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityResourceId.value)]"
+            "value": "[guid(managementGroup().id, variables('reader'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityResourceId.value)]"
           }
         },
         "template": {
@@ -434,7 +434,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1272.37030",
-              "templateHash": "11993142732519516567"
+              "templateHash": "17674173616495008596"
             }
           },
           "parameters": {
@@ -483,8 +483,8 @@
               "properties": {
                 "azPowerShellVersion": "7.3",
                 "cleanupPreference": "Always",
-                "retentionInterval": "P1H",
-                "timeout": "P1H",
+                "retentionInterval": "PT1D",
+                "timeout": "PT1H",
                 "arguments": "[format('-prosimoTeamName ''{0}'' -prosimoApiToken ''{1}'' -clientId ''{2}'' -subscriptionList ''{3}'' -tenantId ''{4}'' -clientSecret ''{5}'' ', parameters('prosimoTeamName'), parameters('prosimoApiToken'), parameters('clientId'), parameters('subscriptionList'), variables('tenantId'), parameters('clientSecret'))]",
                 "scriptContent": "      param(\n        [string] [Parameter(Mandatory=$true)] $prosimoTeamName,\n        [string] [Parameter(Mandatory=$true)] $prosimoApiToken,\n        [string] [Parameter(Mandatory=$true)] $clientId,\n        [string] [Parameter(Mandatory=$true)] $subscriptionList,\n        [string] [Parameter(Mandatory=$true)] $tenantId\n      )\n    \n        $headers = @{\n          'content-type' = 'application/json'\n          'Prosimo-ApiToken' = $prosimoApiToken\n        }\n    \n        $uri = \"https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds\"\n    \n        $clientId = $clientId\n        $tenantId = $tenantId\n        $clientSecret = $clientSecret\n    \n        foreach ($subscription in $subscriptionList) {\n          $subscriptionId = $subscription.Split(\"/\")[2]\n          $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name\n    \n          $body = @{\n            'cloudType' = 'AZURE'\n            'keyType' = 'AZUREKEY'\n            'name' = $subscriptionName\n            'details' = @{\n                'clientID' = $clientId\n                'clientSecret' = $clientSecret\n                'subscriptionID' = $subscriptionId\n                'tenantID' = $tenantId\n                }\n            }   \n    \n            Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body\n    \n        }\n    "
               }

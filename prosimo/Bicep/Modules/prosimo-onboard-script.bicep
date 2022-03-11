@@ -22,8 +22,8 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   properties: {
     azPowerShellVersion: '7.3'
     cleanupPreference: 'Always'
-    retentionInterval: 'P1H'
-    timeout: 'P1H'
+    retentionInterval: 'PT1D'
+    timeout: 'PT1H'
     arguments: '-prosimoTeamName \'${prosimoTeamName}\' -prosimoApiToken \'${prosimoApiToken}\' -clientId \'${clientId}\' -subscriptionList \'${subscriptionList}\' -tenantId \'${tenantId}\' -clientSecret \'${clientSecret}\' '
     scriptContent: '''
       param(

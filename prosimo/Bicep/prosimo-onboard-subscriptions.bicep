@@ -10,7 +10,7 @@ param subscriptionId string
 param time string = utcNow()
 
 var scriptRole = json(loadTextContent('../Parameters/script-role.json'))
-var reader = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+var reader = '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7'
 var resourceGroupName = 'removeThis-${guid(subscriptionGuid)}'
 var subscriptionGuid = replace(subscriptionId, '/subscriptions/', '')
 var tags = {
@@ -58,7 +58,7 @@ module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
     roleId: reader
-    assignmentGuid: guid(subscriptionId, reader, createIdentity.outputs.identityResourceId)
+    assignmentGuid: guid(managementGroup().id, reader, createIdentity.outputs.identityResourceId)
   }
 }
 

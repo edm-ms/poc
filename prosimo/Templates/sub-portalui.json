@@ -87,11 +87,11 @@
         "outputs": {
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
-                "subscriptionId": "[steps('basics').resourceScope.subscriptionId]"
+                "subscriptionId": "[steps('basics').resourceScope.subscription.id]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",
-            "subscriptionId": "[steps('basics').resourceScope.subscriptionId]"
+            "subscriptionId": "[steps('basics').resourceScope.subscription.id]"
         }        
     }
 }

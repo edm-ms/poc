@@ -36,3 +36,6 @@ param(
         Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
 
     }
+
+
+    $subscriptionList = (Search-AzGraph -Query "ResourceContainers | where type =~ 'microsoft.resources/subscriptions'" -ManagementGroup $managementGroupName).id 

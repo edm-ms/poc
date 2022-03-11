@@ -21,13 +21,38 @@
                         {
                             "name": "resourceScope",
                             "type": "Microsoft.Common.ResourceScope"
-                        },   
+                        },
                         {
                             "name": "deploymentDetails",
                             "label": "Prosimo Subscription Onboarding",
                             "type": "Microsoft.Common.Section",
                             "visible": true,
                             "elements": [
+                              {
+                                "name": "subscriptionApi",
+                                "type": "Microsoft.Solutions.ArmApiControl",
+                                "request": {
+                                    "method": "GET",
+                                    "path": "subscriptions?api-version=2020-01-01"
+                                }
+                            },
+                            {
+                              "name": "subscriptionId",
+                              "label": "Subscription",
+                              "type": "Microsoft.Common.DropDown",
+                              "visible": true,
+                              "defaultValue": "",
+                              "toolTip": "Select the Subscription for the Prosimo deployment script.",
+                              "multiselect": false,
+                              "selectAll": false,
+                              "filter": true,
+                              "filterPlaceholder": "Filter items ...",
+                              "multiLine": true,
+                              "constraints": {
+                                  "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                  "required": true
+                              }
+                          },                            
                               {
                                 "name": "clientId",
                                 "type": "Microsoft.Common.TextBox",
@@ -86,21 +111,14 @@
                                     },
                                     "visible": true
                                   },                                  
-                                      {
-                                    "name": "subscriptionApi",
-                                    "type": "Microsoft.Solutions.ArmApiControl",
-                                    "request": {
-                                        "method": "GET",
-                                        "path": "subscriptions?api-version=2020-01-01"
-                                    }
-                                },
+
                                 {
                                     "name": "subscriptionIds",
-                                    "label": "Subscription",
+                                    "label": "Subscriptions to Onboard to Prosimo",
                                     "type": "Microsoft.Common.DropDown",
                                     "visible": true,
                                     "defaultValue": "",
-                                    "toolTip": "Select the Subscription for your Data Landing Zone.",
+                                    "toolTip": "Select the subscriptions to onboard into the Prosimo platform.",
                                     "multiselect": true,
                                     "selectAll": true,
                                     "filter": true,
@@ -118,12 +136,12 @@
             ]
         },
         "outputs": {
-            "kind": "Subscription",
+            "kind": "ManagementGroup",
             "location": "[steps('basics').resourceScope.location.name]",
-            "subscriptionId": "[steps('basics').resourceScope.subscription.id]",
+            "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
             "parameters": {
                 "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]",
-                "subscriptionId": "[steps('basics').resourceScope.subscription.id]",
+                "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]",
                 "prosimoTeamName": "[steps('basics').deploymentDetails.prosimoTeamName]",
                 "prosimoApiToken": "[steps('basics').deploymentDetails.prosimoApiToken]",
                 "clientId": "[steps('basics').deploymentDetails.clientId]",

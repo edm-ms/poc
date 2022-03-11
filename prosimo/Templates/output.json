@@ -5,12 +5,15 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "10646846643141561134"
+      "templateHash": "4682438955863037107"
     }
   },
   "parameters": {
     "subscriptionList": {
       "type": "array"
+    },
+    "subscriptionId": {
+      "type": "string"
     }
   },
   "resources": [],
@@ -18,6 +21,10 @@
     "subscriptions": {
       "type": "array",
       "value": "[parameters('subscriptionList')]"
+    },
+    "subscriptionId": {
+      "type": "string",
+      "value": "[parameters('subscriptionId')]"
     }
   }
 }

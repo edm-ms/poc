@@ -93,7 +93,8 @@
             "location": "[steps('basics').resourceScope.location.name]",
             "subscriptionId": "[steps('basics').resourceScope.subscription.id]",
             "parameters": {
-                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]"
+                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]",
+                "subscriptionId": "[steps('basics').resourceScope.subscription.id]"
             }
         }        
     }

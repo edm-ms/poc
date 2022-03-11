@@ -16,11 +16,22 @@ var tags = {
   'Action': 'Please delete, this is no longer needed'
 }
 
+module createScriptRole 'define-role.bicep' = {
+  name: 'scriptRole-${time}'
+  params: {
+    assignmentScope: subscriptionId
+    roleDescription: scriptRole.description
+    roleName: scriptRole.roleName
+    rolePermissions: scriptRole.permissions
+  }
+}
+
 module createIdentity 'managedIdentity.bicep' = {
   name: 'managedIdentity-${time}'
   params: {
     identityName: 'prosimo-sub-onboard'
     location: location
+    tags: tags
   }
 }
 
@@ -39,7 +50,7 @@ module assignScriptRole 'assign-role.bicep' = {
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
-    roleId: reader
+    roleId: createScriptRole.outputs.roleId
     assignmentGuid: guid(subscriptionId, reader, createIdentity.outputs.identityResourceId)
   }
 }

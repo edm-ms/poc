@@ -31,7 +31,6 @@
                             "type": "Microsoft.Common.Section",
                             "visible": true,
                             "elements": [
-                        
                                 {
                                     "name": "infoBoxDeploymentDetails",
                                     "type": "Microsoft.Common.InfoBox",
@@ -40,6 +39,31 @@
                                         "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
                                         "style": "Info",
                                         "uri": "https://help.prosimo.io/hc/en-us/articles/360047151112"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionIds",
+                                    "label": "Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Choose subscription for Prosimo Infrastructure Role Assignment.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
                                     }
                                 },
                                 {

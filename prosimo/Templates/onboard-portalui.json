@@ -1,152 +1,144 @@
 {
-    "$schema": "<relative path to createFormUI.schema.json>",
-    "view": {
-        "kind": "Form",
-        "properties": {
-            "title": "Prosimo Subscription Onboarding",
-            "steps": [
-                {
-                    "name": "basics",
-                    "label": "Basics",
-                    "elements": [
-                        {
-                            "name": "introText",
-                            "type": "Microsoft.Common.InfoBox",
-                            "visible": true,
-                            "options": {
-                              "icon": "Info",
-                              "text": "Select a subscription to store the deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
-                            }
-                          },
-                        {
-                            "name": "resourceScope",
-                            "type": "Microsoft.Common.ResourceScope"
+  "$schema": "<relative path to createFormUI.schema.json>",
+  "view": {
+      "kind": "Form",
+      "properties": {
+          "title": "Prosimo Subscription Onboarding",
+          "steps": [
+              {
+                  "name": "basics",
+                  "label": "Azure Credentials",
+                  "elements": [
+                      {
+                          "name": "introText",
+                          "type": "Microsoft.Common.InfoBox",
+                          "visible": true,
+                          "options": {
+                            "icon": "Info",
+                            "text": "Select a subscription to store the deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
+                          }
                         },
                         {
-                            "name": "deploymentDetails",
-                            "label": "Prosimo Subscription Onboarding",
-                            "type": "Microsoft.Common.Section",
+                          "name": "resourceScope",
+                          "type": "Microsoft.Common.ResourceScope"
+                      },         
+                      {
+                          "name": "deploymentDetails",
+                          "label": "Prosimo Deployment Script",
+                          "type": "Microsoft.Common.Section",
+                          "visible": true,
+                          "elements": [
+                            {
+                              "name": "subscriptionApi",
+                              "type": "Microsoft.Solutions.ArmApiControl",
+                              "request": {
+                                  "method": "GET",
+                                  "path": "subscriptions?api-version=2020-01-01"
+                              }
+                          },
+                          {
+                            "name": "subscriptionId",
+                            "label": "Subscription",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": true,
-                            "elements": [
-                              {
-                                "name": "subscriptionApi",
-                                "type": "Microsoft.Solutions.ArmApiControl",
-                                "request": {
-                                    "method": "GET",
-                                    "path": "subscriptions?api-version=2020-01-01"
-                                }
+                            "defaultValue": "",
+                            "toolTip": "Select the Subscription for the Prosimo deployment script.",
+                            "multiselect": false,
+                            "selectAll": false,
+                            "filter": true,
+                            "filterPlaceholder": "Filter items ...",
+                            "multiLine": true,
+                            "constraints": {
+                                "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                "required": true
+                            }
+                        },  
+                            {
+                              "name": "clientId",
+                              "type": "Microsoft.Common.TextBox",
+                              "label": "Service Principal Client ID",
+                              "defaultValue": "",
+                              "toolTip": "Service Principal Client ID",
+                              "placeholder": "",
+                              "multiLine": false,
+                              "constraints": {
+                                "required": true,
+                                "validations": []
+                              },
+                              "visible": true
                             },
                             {
-                              "name": "subscriptionId",
-                              "label": "Subscription",
-                              "type": "Microsoft.Common.DropDown",
-                              "visible": true,
-                              "defaultValue": "",
-                              "toolTip": "Select the Subscription for the Prosimo deployment script.",
-                              "multiselect": false,
-                              "selectAll": false,
-                              "filter": true,
-                              "filterPlaceholder": "Filter items ...",
-                              "multiLine": true,
-                              "constraints": {
-                                  "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                                  "required": true
-                              }
-                          },                            
-                              {
-                                "name": "clientId",
-                                "type": "Microsoft.Common.TextBox",
-                                "label": "Prosimo Service Principal Client ID",
-                                "defaultValue": "",
-                                "toolTip": "Prosimo Service Principal Client ID",
-                                "placeholder": "",
-                                "multiLine": false,
-                                "constraints": {
-                                  "required": true,
-                                  "validations": []
-                                },
-                                "visible": true
+                              "name": "clientSecret",
+                              "type": "Microsoft.Common.PasswordBox",
+                              "label": {
+                                "password": "Service Principal Secret"
                               },
-                              {
-                                "name": "clientSecret",
-                                "type": "Microsoft.Common.PasswordBox",
-                                "label": {
-                                  "password": "Prosimo Service Principal Secret"
-                                },
-                                "toolTip": "",
-                                "constraints": {
-                                  "required": true
-                                },
-                                "options": {
-                                  "hideConfirmation": true
-                                },
-                                "visible": true
-                              },                                    
-                                {
-                                    "name": "prosimoTeamName",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "Prosimo Team Name",
-                                    "defaultValue": "",
-                                    "toolTip": "Enter the name of your Prosimo Team. You will have created this on your initial login.",
-                                    "placeholder": "",
-                                    "multiLine": false,
-                                    "constraints": {
-                                      "required": true,
-                                      "validations": []
-                                    },
-                                    "visible": true
-                                  },
-                                  {
-                                    "name": "prosimoApiToken",
-                                    "type": "Microsoft.Common.PasswordBox",
-                                    "label": {
-                                      "password": "Prosimo API Token"
-                                    },
-                                    "toolTip": "",
-                                    "constraints": {
-                                      "required": true
-                                    },
-                                    "options": {
-                                      "hideConfirmation": true
-                                    },
-                                    "visible": true
-                                  },                                  
-
-                                {
-                                    "name": "subscriptionIds",
-                                    "label": "Subscriptions to Onboard to Prosimo",
-                                    "type": "Microsoft.Common.DropDown",
-                                    "visible": true,
-                                    "defaultValue": "",
-                                    "toolTip": "Select the subscriptions to onboard into the Prosimo platform.",
-                                    "multiselect": true,
-                                    "selectAll": true,
-                                    "filter": true,
-                                    "filterPlaceholder": "Filter items ...",
-                                    "multiLine": true,
-                                    "constraints": {
-                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                                        "required": true
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                }             
-            ]
-        },
-        "outputs": {
-            "kind": "ManagementGroup",
-            "location": "[steps('basics').resourceScope.location.name]",
-            "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
-            "parameters": {
-                "subscriptionList": "[steps('basics').deploymentDetails.subscriptionIds]",
-                "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]",
-                "prosimoTeamName": "[steps('basics').deploymentDetails.prosimoTeamName]",
-                "prosimoApiToken": "[steps('basics').deploymentDetails.prosimoApiToken]",
-                "clientId": "[steps('basics').deploymentDetails.clientId]",
-                "clientSecret": "[steps('basics').deploymentDetails.clientSecret]"
-            }
-        }        
-    }
+                              "toolTip": "",
+                              "constraints": {
+                                "required": true
+                              },
+                              "options": {
+                                "hideConfirmation": true
+                              },
+                              "visible": true
+                            }
+                          ]
+                      }
+                  ]
+              },
+              {
+                "name": "prosimoStep",
+                "label": "Prosimo Onboarding",
+                "elements": [
+                  {
+                    "name": "prosimoSubs",
+                    "type": "Microsoft.Common.ResourceScope"
+                },
+                  {
+                    "name": "prosimoTeamName",
+                    "type": "Microsoft.Common.TextBox",
+                    "label": "Prosimo Team Name",
+                    "defaultValue": "",
+                    "toolTip": "Enter the name of your Prosimo Team. You will have created this on your initial login.",
+                    "placeholder": "",
+                    "multiLine": false,
+                    "constraints": {
+                      "required": true,
+                      "validations": []
+                    },
+                    "visible": true
+                  },
+                  {
+                    "name": "prosimoApiToken",
+                    "type": "Microsoft.Common.PasswordBox",
+                    "label": {
+                      "password": "Prosimo API Token"
+                    },
+                    "toolTip": "",
+                    "constraints": {
+                      "required": true
+                    },
+                    "options": {
+                      "hideConfirmation": true
+                    },
+                    "visible": true
+                  }
+                ]
+              }
+          ]
+      },
+      "outputs": {
+          "kind": "ManagementGroup",
+          "location": "[steps('basics').resourceScope.location.name]",
+          "managementGroupId": "[steps('prosimoStep').prosimoSubs.managementGroup.id]",
+          "parameters": {
+              "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]",
+              "prosimoTeamName": "[steps('prosimoStep').prosimoTeamName]",
+              "prosimoApiToken": "[steps('prosimoStep').prosimoApiToken]",
+              "clientId": "[steps('basics').deploymentDetails.clientId]",
+              "clientSecret": "[steps('basics').deploymentDetails.clientSecret]",
+              "managementGroupName": "[steps('prosimoStep').prosimoSubs.managementGroup.name]"
+          }
+      }        
+  }
 }

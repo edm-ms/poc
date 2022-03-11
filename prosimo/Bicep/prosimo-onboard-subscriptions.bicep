@@ -5,7 +5,7 @@ param prosimoTeamName string
 param prosimoApiToken string
 param clientId string
 param clientSecret string
-param subscriptionList array
+param managementGroupName string
 param subscriptionId string
 param time string = utcNow()
 
@@ -86,7 +86,7 @@ module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
     name: 'onboardSubToProsimo'
     prosimoApiToken: prosimoApiToken
     prosimoTeamName: prosimoTeamName
-    subscriptionList: subscriptionList
+    managementGroupName: managementGroupName
     location: location
   }
 }

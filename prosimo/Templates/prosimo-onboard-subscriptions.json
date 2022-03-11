@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "16308965823149553577"
+      "templateHash": "17805445408516314518"
     }
   },
   "parameters": {
@@ -25,8 +25,8 @@
     "clientSecret": {
       "type": "string"
     },
-    "subscriptionList": {
-      "type": "array"
+    "managementGroupName": {
+      "type": "string"
     },
     "subscriptionId": {
       "type": "string"
@@ -409,7 +409,7 @@
             "value": "[parameters('clientSecret')]"
           },
           "identityId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityPrincipalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityResourceId.value]"
           },
           "name": {
             "value": "onboardSubToProsimo"
@@ -420,8 +420,8 @@
           "prosimoTeamName": {
             "value": "[parameters('prosimoTeamName')]"
           },
-          "subscriptionList": {
-            "value": "[parameters('subscriptionList')]"
+          "managementGroupName": {
+            "value": "[parameters('managementGroupName')]"
           },
           "location": {
             "value": "[parameters('location')]"
@@ -434,7 +434,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1272.37030",
-              "templateHash": "9466351462415574871"
+              "templateHash": "16853361233687066783"
             }
           },
           "parameters": {
@@ -460,8 +460,8 @@
             "clientSecret": {
               "type": "string"
             },
-            "subscriptionList": {
-              "type": "array"
+            "managementGroupName": {
+              "type": "string"
             }
           },
           "variables": {
@@ -485,8 +485,8 @@
                 "cleanupPreference": "Always",
                 "retentionInterval": "P1D",
                 "timeout": "PT1H",
-                "arguments": "[format('-prosimoTeamName ''{0}'' -prosimoApiToken ''{1}'' -clientId ''{2}'' -subscriptionList ''{3}'' -tenantId ''{4}'' -clientSecret ''{5}'' ', parameters('prosimoTeamName'), parameters('prosimoApiToken'), parameters('clientId'), parameters('subscriptionList'), variables('tenantId'), parameters('clientSecret'))]",
-                "scriptContent": "      param(\n        [string] [Parameter(Mandatory=$true)] $prosimoTeamName,\n        [string] [Parameter(Mandatory=$true)] $prosimoApiToken,\n        [string] [Parameter(Mandatory=$true)] $clientId,\n        [string] [Parameter(Mandatory=$true)] $subscriptionList,\n        [string] [Parameter(Mandatory=$true)] $tenantId\n      )\n    \n        $headers = @{\n          'content-type' = 'application/json'\n          'Prosimo-ApiToken' = $prosimoApiToken\n        }\n    \n        $uri = \"https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds\"\n    \n        $clientId = $clientId\n        $tenantId = $tenantId\n        $clientSecret = $clientSecret\n    \n        foreach ($subscription in $subscriptionList) {\n          $subscriptionId = $subscription.Split(\"/\")[2]\n          $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name\n    \n          $body = @{\n            'cloudType' = 'AZURE'\n            'keyType' = 'AZUREKEY'\n            'name' = $subscriptionName\n            'details' = @{\n                'clientID' = $clientId\n                'clientSecret' = $clientSecret\n                'subscriptionID' = $subscriptionId\n                'tenantID' = $tenantId\n                }\n            }   \n    \n            Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body\n    \n        }\n    "
+                "arguments": "[format('-prosimoTeamName ''{0}'' -prosimoApiToken ''{1}'' -clientId ''{2}'' -managementGroupName ''{3}'' -tenantId ''{4}'' -clientSecret ''{5}'' ', parameters('prosimoTeamName'), parameters('prosimoApiToken'), parameters('clientId'), parameters('managementGroupName'), variables('tenantId'), parameters('clientSecret'))]",
+                "scriptContent": "    param(\n      [string] [Parameter(Mandatory=$true)] $prosimoTeamName,\n      [string] [Parameter(Mandatory=$true)] $prosimoApiToken,\n      [string] [Parameter(Mandatory=$true)] $clientId,\n      [string] [Parameter(Mandatory=$true)] $clientSecret,\n      [string] [Parameter(Mandatory=$true)] $managementGroupName,\n      [string] [Parameter(Mandatory=$true)] $tenantId\n    )\n    \n      Install-Module -Name Az.ResourceGraph -Force\n      $subscriptionList = (Search-AzGraph -Query \"ResourceContainers | where type =~ 'microsoft.resources/subscriptions'\" -ManagementGroup $managementGroupName).id\n    \n        $headers = @{\n          'content-type' = 'application/json'\n          'Prosimo-ApiToken' = $prosimoApiToken\n        }\n    \n        $uri = \"https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds\"\n    \n        $clientId = $clientId\n        $tenantId = $tenantId\n        $clientSecret = $clientSecret\n    \n        foreach ($subscription in $subscriptionList) {\n          $subscriptionId = $subscription.Split(\"/\")[2]\n          $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name \n    \n          $body = @\"\n          {\n            \"cloudType\": \"AZURE\",\n            \"keyType\": \"AZUREKEY\",\n            \"name\": \"$subscriptionName\",\n            \"details\": {\n                \"clientID\": \"$clientId\",\n                \"clientSecret\": \"$clientSecret\",\n                \"subscriptionID\": \"$subscriptionId\",\n                \"tenantID\": \"$tenantId\"\n            }\n        }    \n\"@\n          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body\n        }\n    "
               }
             }
           ],

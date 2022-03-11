@@ -31,7 +31,7 @@
                               {
                                 "name": "clientId",
                                 "type": "Microsoft.Common.TextBox",
-                                "label": "Prosimo Team Name",
+                                "label": "Prosimo Service Principal Client ID",
                                 "defaultValue": "",
                                 "toolTip": "Prosimo Service Principal Client ID",
                                 "placeholder": "",

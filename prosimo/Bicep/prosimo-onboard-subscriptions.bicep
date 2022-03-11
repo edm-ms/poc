@@ -50,7 +50,7 @@ module createIdentity './Modules/managed-identity.bicep' = {
 }
 
 module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
-  name: 'readerRole-${time}'
+  name: 'assignReaderRole-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
@@ -61,7 +61,7 @@ module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
 
 module assignScriptRole './Modules/assign-role-sub-scope.bicep' = {
   scope: subscription(subscriptionGuid)
-  name: 'scriptRole-${time}'
+  name: 'assignScriptRole-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'

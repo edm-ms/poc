@@ -39,7 +39,7 @@ module createScriptRole './Modules/define-role-mgt-scope.bicep' = {
 }
 
 module createIdentity './Modules/managed-identity.bicep' = {
-  scope: resourceGroup(subscriptionId, resourceGroupName)
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
   name: 'managedIdentity-${time}'
   params: {
     identityName: 'prosimo-sub-onboard'

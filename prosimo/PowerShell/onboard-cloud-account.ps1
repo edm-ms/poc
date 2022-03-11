@@ -1,31 +1,38 @@
-$headers = @{
-    'content-type' = 'application/json'
-    'Prosimo-ApiToken' = $env:prosimoApiToken
-}
+param(
+    [string] [Parameter(Mandatory=$true)] $prosimoTeamName,
+    [string] [Parameter(Mandatory=$true)] $prosimoApiToken,
+    [string] [Parameter(Mandatory=$true)] $clientId,
+    [string] [Parameter(Mandatory=$true)] $subscriptionList,
+    [string] [Parameter(Mandatory=$true)] $tenantId
+  )
 
-$uri = 'https://<>.admin.prosimo.io/api/cloud/creds'
+    $headers = @{
+      'content-type' = 'application/json'
+      'Prosimo-ApiToken' = $prosimoApiToken
+    }
 
-$clientId = ''
-$tenantId = ''
-$subscriptionId = ''
-$clientSecret = $env:clientSecret
+    $uri = "https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds"
 
-$subscriptionList
+    $clientId = $clientId
+    $tenantId = $tenantId
+    $clientSecret = $clientSecret
 
-foreach ($subscription in $subscriptionList) {
+    foreach ($subscription in $subscriptionList) {
+      $subscriptionId = $subscription.Split("/")[2]
+      $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name 
 
-    $body = @{
+      $body = @{
         'cloudType' = 'AZURE'
         'keyType' = 'AZUREKEY'
-        'name' = 'Azure-Dev'
+        'name' = $subscriptionName
         'details' = @{
             'clientID' = $clientId
             'clientSecret' = $clientSecret
             'subscriptionID' = $subscriptionId
             'tenantID' = $tenantId
-        }
+            }
+        }   
+
+        Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
+
     }
-
-    Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
-
-}

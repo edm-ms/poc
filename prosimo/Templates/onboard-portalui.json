@@ -64,7 +64,7 @@
                       "filterPlaceholder": "Filter items ...",
                       "multiLine": true,
                       "constraints": {
-                          "allowedValues": "[map(steps('AzureStep').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                          "allowedValues": "[map(steps('azureStep').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
                           "required": true
                       }
                   },  

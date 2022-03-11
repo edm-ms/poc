@@ -4,6 +4,7 @@ param prosimoApiToken string
 param clientId string
 param clientSecret string
 param subscriptionList array
+param subscriptionId string
 param time string = utcNow()
 
 var scriptRole = json(loadTextContent('../Parameters/script-role.json'))
@@ -29,7 +30,17 @@ module assignReaderRole 'assign-role.bicep' = {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
     roleId: reader
-    uniqueString: 
+    assignmentGuid: guid(subscriptionId, reader, createIdentity.outputs.identityResourceId)
+  }
+}
+
+module assignScriptRole 'assign-role.bicep' = {
+  name: 'scriptRole-${time}'
+  params: {
+    principalId: createIdentity.outputs.identityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleId: reader
+    assignmentGuid: guid(subscriptionId, reader, createIdentity.outputs.identityResourceId)
   }
 }
 
@@ -44,15 +55,5 @@ module onboardSubscriptions 'prosimo-deploymentScript.bicep' = {
     prosimoTeamName: prosimoTeamName
     subscriptionList: subscriptionList
     location: location
-  }
-}
-
-
-resource assignProsimoAppRole 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
-  name: guid(createIdentity.outputs.identityResourceId, 'ProsimoAppRole')
-  properties: {
-    principalId: createIdentity.outputs.identityPrincipalId
-    roleDefinitionId: reader
-    principalType: 'ServicePrincipal'
   }
 }

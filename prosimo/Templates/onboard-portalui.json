@@ -107,10 +107,6 @@
                 "label": "Prosimo Setup",
                 "elements": [
                   {
-                    "name": "prosimoSubs",
-                    "type": "Microsoft.Common.ResourceScope"
-                },
-                  {
                     "name": "prosimoTeamName",
                     "type": "Microsoft.Common.TextBox",
                     "label": "Prosimo Team Name",

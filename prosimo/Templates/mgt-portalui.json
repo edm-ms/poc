@@ -111,6 +111,7 @@
         "outputs": {
             "parameters": {
                 "principalId": "[steps('basics').deploymentDetails.ServicePrincipal.objectId]",
+                "spPassword": "[steps('basics').deploymentDetails.ServicePrincipal.password]",
                 "appId": "[steps('basics').deploymentDetails.ServicePrincipal.appId]",
                 "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
                 "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",

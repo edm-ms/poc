@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "7221765261591435666"
+      "templateHash": "13415596646942491368"
     }
   },
   "parameters": {
@@ -24,16 +24,31 @@
     "appId": {
       "type": "string"
     },
+    "spPassword": {
+      "type": "secureString"
+    },
     "time": {
       "type": "string",
       "defaultValue": "[utcNow()]"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[deployment().location]"
     }
   },
   "variables": {
     "prosimoAppRoleDefinition": "[json('{\n    \"properties\": {\n        \"roleName\": \"ProsimoAppRole\",\n        \"description\": \"Has required permissions to onboard apps in a customer''s subscription\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Resources/tags/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/routeFilters/*\"\n                ],\n                \"notActions\": [],\n                \"dataActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}\n')]",
     "prosimoInfraRoleDefinition": "[json('{\n    \"properties\": {\n        \"description\": \"Has required permissions for creating a prosimo edge in a subscription\",\n        \"roleName\": \"ProsimoEdgeRole\",\n        \"assignableScopes\": [],\n        \"permissions\": [\n            {\n                \"actions\": [\n                    \"Microsoft.Authorization/*/read\",\n                    \"Microsoft.Compute/*/read\",\n                    \"Microsoft.Compute/sshPublicKeys/write\",\n                    \"Microsoft.Compute/virtualMachines/*\",\n                    \"Microsoft.Compute/virtualMachineScaleSets/*\",\n                    \"Microsoft.ContainerService/*/read\",\n                    \"Microsoft.ContainerService/managedClusters/*\",\n                    \"Microsoft.ManagedIdentity/*/read\",\n                    \"Microsoft.Network/*/action\",\n                    \"Microsoft.Network/*/read\",\n                    \"Microsoft.Network/applicationGateways/*\",\n                    \"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/*\",\n                    \"Microsoft.Network/customIpPrefixes/*\",\n                    \"Microsoft.Network/frontDoors/*\",\n                    \"Microsoft.Network/ipAllocations/*\",\n                    \"Microsoft.Network/ipGroups/*\",\n                    \"Microsoft.Network/loadBalancers/*\",\n                    \"Microsoft.Network/networkInterfaces/*\",\n                    \"Microsoft.Network/networkProfiles/*\",\n                    \"Microsoft.Network/networkSecurityGroups/*\",\n                    \"Microsoft.Network/privateDnsZones/*\",\n                    \"Microsoft.Network/privateEndpointRedirectMaps/*\",\n                    \"Microsoft.Network/privateEndpoints/*\",\n                    \"Microsoft.Network/privateLinkServices/*\",\n                    \"Microsoft.Network/publicIPAddresses/*\",\n                    \"Microsoft.Network/publicIPPrefixes/*\",\n                    \"Microsoft.Network/routeFilters/*\",\n                    \"Microsoft.Network/routeTables/*\",\n                    \"Microsoft.Network/serviceEndpointPolicies/*\",\n                    \"Microsoft.Network/virtualHubs/*\",\n                    \"Microsoft.Network/virtualNetworks/*\",\n                    \"Microsoft.Network/virtualWans/*\",\n                    \"Microsoft.Resources/*/read\",\n                    \"Microsoft.Resources/checkResourceName/action\",\n                    \"Microsoft.Resources/deployments/*\",\n                    \"Microsoft.Resources/subscriptions/resourceGroups/*\",\n                    \"Microsoft.Resources/tags/*\"\n                ],\n                \"dataActions\": [],\n                \"notActions\": [],\n                \"notDataActions\": []\n            }\n        ]\n    }\n}')]",
     "prosimoServicePrincipal": "[parameters('principalId')[0]]",
-    "subscriptionGuid": "[replace(parameters('subscriptionId'), '/subscriptions/', '')]"
+    "subscriptionGuid": "[replace(parameters('subscriptionId'), '/subscriptions/', '')]",
+    "resourceGroupName": "[format('rg-prosimo-{0}', take(guid(variables('subscriptionGuid')), 8))]",
+    "keyVaultName": "[format('kv-prosimo-{0}', take(guid(variables('subscriptionGuid')), 8))]",
+    "secretNameClientId": "prosimoSPClientId",
+    "secretNameClientPassword": "prosimoSPpassword",
+    "tags": {
+      "Prosimo Login URL": "https://admin.prosimo.io/signin",
+      "Purpose": "Used to store Service Principal ID and secret for Prosimo orchestration"
+    }
   },
   "resources": [
     {
@@ -312,6 +327,475 @@
       },
       "dependsOn": [
         "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('prosimoInfraRole-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('createKvRg-{0}', parameters('time'))]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "resourceGroupName": {
+            "value": "[variables('resourceGroupName')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "13069632413437553111"
+            }
+          },
+          "parameters": {
+            "resourceGroupName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[deployment().location]"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/resourceGroups",
+              "apiVersion": "2021-04-01",
+              "name": "[parameters('resourceGroupName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "resourceGroupId": {
+              "type": "string",
+              "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+            },
+            "resourceGroupName": {
+              "type": "string",
+              "value": "[parameters('resourceGroupName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('managedIdentity-{0}', parameters('time'))]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
+      "resourceGroup": "[variables('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "identityName": {
+            "value": "prosimo-sub-onboard"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "13974289288639628868"
+            }
+          },
+          "parameters": {
+            "identityName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2018-11-30",
+              "name": "[parameters('identityName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "identityResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]"
+            },
+            "identityPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('createKv-{0}', parameters('time'))]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
+      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "objectId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityPrincipalId.value]"
+          },
+          "enabledForDeployment": {
+            "value": true
+          },
+          "enabledForTemplateDeployment": {
+            "value": true
+          },
+          "principalType": {
+            "value": "ServicePrincipal"
+          },
+          "roleName": {
+            "value": "Key Vault Secrets Officer"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "10179871334823284667"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "maxLength": 18,
+              "metadata": {
+                "description": "Specifies the name of the key vault."
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Specifies the Azure location where the key vault should be created."
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "standard",
+              "allowedValues": [
+                "standard",
+                "premium"
+              ],
+              "metadata": {
+                "description": "Specifies whether the key vault is a standard vault or a premium vault."
+              }
+            },
+            "enabledForDeployment": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Specifies whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault."
+              }
+            },
+            "enabledForDiskEncryption": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Specifies whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
+              }
+            },
+            "enabledForTemplateDeployment": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Specifies whether Azure Resource Manager is permitted to retrieve secrets from the key vault."
+              }
+            },
+            "tenantId": {
+              "type": "string",
+              "defaultValue": "[subscription().tenantId]",
+              "metadata": {
+                "description": "Specifies the Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Get it by using Get-AzSubscription cmdlet."
+              }
+            },
+            "objectId": {
+              "type": "string",
+              "metadata": {
+                "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+              }
+            },
+            "roleName": {
+              "type": "string",
+              "defaultValue": "Key Vault Administrator",
+              "allowedValues": [
+                "Key Vault Administrator",
+                "Key Vault Certificates Officer",
+                "Key Vault Crypto Officer",
+                "Key Vault Crypto Service Encryption User",
+                "Key Vault Crypto User",
+                "Key Vault Reader",
+                "Key Vault Secrets Officer",
+                "Key Vault Secrets User"
+              ],
+              "metadata": {
+                "description": "Specifies the role the user will get with the secret in the vault. Valid values are: Key Vault Administrator, Key Vault Certificates Officer, Key Vault Crypto Officer, Key Vault Crypto Service Encryption User, Key Vault Crypto User, Key Vault Reader, Key Vault Secrets Officer, Key Vault Secrets User."
+              }
+            },
+            "principalType": {
+              "type": "string",
+              "metadata": {
+                "description": "Type of security principal for access to Key Vault"
+              },
+              "allowedValues": [
+                "Group",
+                "ServicePrincipal",
+                "User"
+              ]
+            }
+          },
+          "variables": {
+            "roleIdMapping": {
+              "Key Vault Administrator": "00482a5a-887f-4fb3-b363-3b7fe8e74483",
+              "Key Vault Certificates Officer": "a4417e6f-fecd-4de8-b567-7b0420556985",
+              "Key Vault Crypto Officer": "14b46e9e-c2b7-41b4-b07b-48a6ebf60603",
+              "Key Vault Crypto Service Encryption User": "e147488a-f6f5-4113-8e2d-b22465e65bf6",
+              "Key Vault Crypto User": "12338af0-0e69-4776-bea7-57ae8d297424",
+              "Key Vault Reader": "21090545-7ca7-4776-b22c-e363652d74d2",
+              "Key Vault Secrets Officer": "b86a8fe4-44ce-4948-aee5-eccb2c155cd7",
+              "Key Vault Secrets User": "4633458b-17de-408a-b874-0445c86b69e6"
+            },
+            "kvUniqueLength": "[sub(24, length(parameters('keyVaultName')))]",
+            "kvUniqueName": "[format('{0}{1}', parameters('keyVaultName'), take(uniqueString(parameters('keyVaultName'), resourceGroup().id), variables('kvUniqueLength')))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2021-04-01-preview",
+              "name": "[variables('kvUniqueName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "enabledForDeployment": "[parameters('enabledForDeployment')]",
+                "enabledForDiskEncryption": "[parameters('enabledForDiskEncryption')]",
+                "enabledForTemplateDeployment": "[parameters('enabledForTemplateDeployment')]",
+                "enableRbacAuthorization": true,
+                "tenantId": "[parameters('tenantId')]",
+                "sku": {
+                  "name": "[parameters('skuName')]",
+                  "family": "A"
+                },
+                "networkAcls": {
+                  "defaultAction": "Deny",
+                  "bypass": "AzureServices"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-04-01-preview",
+              "scope": "[format('Microsoft.KeyVault/vaults/{0}', variables('kvUniqueName'))]",
+              "name": "[guid(variables('roleIdMapping')[parameters('roleName')], parameters('objectId'), resourceId('Microsoft.KeyVault/vaults', variables('kvUniqueName')))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIdMapping')[parameters('roleName')])]",
+                "principalId": "[parameters('objectId')]",
+                "principalType": "[parameters('principalType')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('kvUniqueName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "keyVaultResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.KeyVault/vaults', variables('kvUniqueName'))]"
+            },
+            "keyVaultName": {
+              "type": "string",
+              "value": "[variables('kvUniqueName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('storeClientID-{0}', parameters('time'))]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
+      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "[variables('secretNameClientId')]"
+          },
+          "secretValue": {
+            "value": "[parameters('appId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "7941400890938176555"
+            }
+          },
+          "parameters": {
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the secret to store in Key Vault"
+              }
+            },
+            "secretValue": {
+              "type": "secureString",
+              "metadata": {
+                "description": "Value of the secret to store in Key Vault"
+              }
+            },
+            "keyVaultName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2021-06-01-preview",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), format('createKvRg-{0}', parameters('time'))), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]",
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('storeSPpassword-{0}', parameters('time'))]",
+      "subscriptionId": "[variables('subscriptionGuid')]",
+      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "[variables('secretNameClientPassword')]"
+          },
+          "secretValue": {
+            "value": "[parameters('spPassword')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.4.1272.37030",
+              "templateHash": "7941400890938176555"
+            }
+          },
+          "parameters": {
+            "secretName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the secret to store in Key Vault"
+              }
+            },
+            "secretValue": {
+              "type": "secureString",
+              "metadata": {
+                "description": "Value of the secret to store in Key Vault"
+              }
+            },
+            "keyVaultName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2021-06-01-preview",
+              "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretName'))]",
+              "properties": {
+                "value": "[parameters('secretValue')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), format('createKvRg-{0}', parameters('time'))), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]",
+        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]"
       ]
     }
   ],

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "13415596646942491368"
+      "templateHash": "7277144877884367595"
     }
   },
   "parameters": {
@@ -470,7 +470,7 @@
       "apiVersion": "2020-10-01",
       "name": "[format('createKv-{0}', parameters('time'))]",
       "subscriptionId": "[variables('subscriptionGuid')]",
-      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -662,7 +662,6 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))]"
       ]
     },
@@ -671,7 +670,7 @@
       "apiVersion": "2020-10-01",
       "name": "[format('storeClientID-{0}', parameters('time'))]",
       "subscriptionId": "[variables('subscriptionGuid')]",
-      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -728,8 +727,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), format('createKvRg-{0}', parameters('time'))), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]",
-        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]"
       ]
     },
     {
@@ -737,7 +735,7 @@
       "apiVersion": "2020-10-01",
       "name": "[format('storeSPpassword-{0}', parameters('time'))]",
       "subscriptionId": "[variables('subscriptionGuid')]",
-      "resourceGroup": "[format('createKvRg-{0}', parameters('time'))]",
+      "resourceGroup": "[variables('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -794,8 +792,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), format('createKvRg-{0}', parameters('time'))), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]",
-        "[subscriptionResourceId(variables('subscriptionGuid'), 'Microsoft.Resources/deployments', format('createKvRg-{0}', parameters('time')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))]"
       ]
     }
   ],

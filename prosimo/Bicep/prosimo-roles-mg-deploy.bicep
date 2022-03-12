@@ -89,7 +89,7 @@ module managedIdentity './Modules/managed-identity.bicep' = {
 }
 
 module keyVault 'Modules/keyvault.bicep' = {
-  scope: resourceGroup(subscriptionGuid, keyVaultRg.name)
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
   name: 'createKv-${time}'
   params: {
     keyVaultName: keyVaultName
@@ -103,7 +103,7 @@ module keyVault 'Modules/keyvault.bicep' = {
 }
 
 module spClientIdSecret 'Modules/keyvault-secret.bicep' = {
-  scope: resourceGroup(subscriptionGuid, keyVaultRg.name)
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
   dependsOn: [
     keyVault
   ]
@@ -116,7 +116,7 @@ module spClientIdSecret 'Modules/keyvault-secret.bicep' = {
 }
 
 module spClientIdPassword 'Modules/keyvault-secret.bicep' = {
-  scope: resourceGroup(subscriptionGuid, keyVaultRg.name)
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
   dependsOn: [
     keyVault
   ]

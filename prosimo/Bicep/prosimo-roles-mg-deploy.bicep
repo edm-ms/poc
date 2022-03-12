@@ -109,7 +109,7 @@ module spClientIdSecret 'Modules/keyvault-secret.bicep' = {
   ]
   name: 'storeClientID-${time}'
   params: {
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.outputs.keyVaultName
     secretName: secretNameClientId
     secretValue: appId
   }
@@ -122,7 +122,7 @@ module spClientIdPassword 'Modules/keyvault-secret.bicep' = {
   ]
   name: 'storeSPpassword-${time}'
   params: {
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.outputs.keyVaultName
     secretName: secretNameClientPassword
     secretValue: spPassword
   }

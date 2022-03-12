@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "10894562559412461393"
+      "templateHash": "10428705238891331150"
     }
   },
   "parameters": {
@@ -678,7 +678,7 @@
         "mode": "Incremental",
         "parameters": {
           "keyVaultName": {
-            "value": "[variables('keyVaultName')]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))).outputs.keyVaultName.value]"
           },
           "secretName": {
             "value": "[variables('secretNameClientId')]"
@@ -743,7 +743,7 @@
         "mode": "Incremental",
         "parameters": {
           "keyVaultName": {
-            "value": "[variables('keyVaultName')]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('createKv-{0}', parameters('time')))).outputs.keyVaultName.value]"
           },
           "secretName": {
             "value": "[variables('secretNameClientPassword')]"

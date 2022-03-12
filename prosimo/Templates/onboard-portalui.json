@@ -1,172 +1,159 @@
 {
-  "$schema": "<relative path to createFormUI.schema.json>",
-  "view": {
-      "kind": "Form",
-      "properties": {
-          "title": "Prosimo Subscription Onboarding",
-          "steps": [
-              {
-                  "name": "basics",
-                  "label": "Susbcriptions to Onboard",
-                  "elements": [
-                      {
-                          "name": "introText",
-                          "type": "Microsoft.Common.InfoBox",
-                          "visible": true,
-                          "options": {
-                            "icon": "Info",
-                            "text": "This will provision an Azure Deployment Script to make REST calls to your Prosimo SaaS platform. The management group selected will be scanned, and all subscriptions contained within the hierarchy will be added as accounts in your Prosimo dashboard. These accounts may be used to onboard applications into the Prosimo Platform."
-                          }
+    "$schema": "<relative path to createFormUI.schema.json>",
+    "view": {
+        "kind": "Form",
+        "properties": {
+            "title": "Prosimo Subscription Onboarding",
+            "steps": [
+                {
+                    "name": "basics",
+                    "label": "Management Group Selection",
+                    "elements": [
+                        {
+                            "name": "introText",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": true,
+                            "options": {
+                                "icon": "Info",
+                                "text": "This will provision an Azure Deployment Script to make REST calls to your Prosimo SaaS platform. The management group selected will be scanned, and all subscriptions contained within the hierarchy will be added as accounts in your Prosimo dashboard. These accounts may be used to onboard applications into the Prosimo Platform."
+                            }
                         },
                         {
-                          "name": "resourceScope",
-                          "type": "Microsoft.Common.ResourceScope"
-                      }         
-                  ]
-              },
-              {
-                "name": "azureStep",
-                "label": "Azure Identity Setup",
-                "elements": [
-                  {
-                    "name": "introText",
-                    "type": "Microsoft.Common.InfoBox",
-                    "visible": true,
-                    "options": {
-                      "icon": "Info",
-                      "text": "Select a subscription to store the deployment script. This script will run against the Prosimo REST API to onboard your selected Azure susbcriptions."
-                    }
-                  },
-                  {
-                    "name": "deploymentDetails",
-                    "label": "Prosimo Deployment Script",
-                    "type": "Microsoft.Common.Section",
-                    "visible": true,
-                    "elements": [
-                      {
-                        "name": "subscriptionApi",
-                        "type": "Microsoft.Solutions.ArmApiControl",
-                        "request": {
-                            "method": "GET",
-                            "path": "subscriptions?api-version=2020-01-01"
+                            "name": "resourceScope",
+                            "type": "Microsoft.Common.ResourceScope"
                         }
-                    },
-                    {
-                      "name": "subscriptionId",
-                      "label": "Subscription",
-                      "type": "Microsoft.Common.DropDown",
-                      "visible": true,
-                      "defaultValue": "",
-                      "toolTip": "Select the Subscription for the Prosimo deployment script.",
-                      "multiselect": false,
-                      "selectAll": false,
-                      "filter": true,
-                      "filterPlaceholder": "Filter items ...",
-                      "multiLine": true,
-                      "constraints": {
-                          "allowedValues": "[map(steps('azureStep').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                          "required": true
-                      }
-                  },  
-                      {
-                        "name": "clientId",
-                        "type": "Microsoft.Common.TextBox",
-                        "label": "Service Principal Client ID",
-                        "defaultValue": "",
-                        "toolTip": "Service Principal Client ID",
-                        "placeholder": "",
-                        "multiLine": false,
-                        "constraints": {
-                          "required": true,
-                          "validations": []
-                        },
-                        "visible": true
-                      },
-                      {
-                        "name": "clientSecret",
-                        "type": "Microsoft.Common.PasswordBox",
-                        "label": {
-                          "password": "Service Principal Secret"
-                        },
-                        "toolTip": "",
-                        "constraints": {
-                          "required": true
-                        },
-                        "options": {
-                          "hideConfirmation": true
-                        },
-                        "visible": true
-                      }
                     ]
-                }                  
-                ]
-
-              },
-              {
-                "name": "prosimoStep",
-                "label": "Prosimo Identity Setup",
-                "elements": [
-                  {
-                    "name": "prosimoTeamName",
-                    "type": "Microsoft.Common.TextBox",
-                    "label": "Prosimo Team Name",
-                    "defaultValue": "",
-                    "toolTip": "Enter the name of your Prosimo Team. You will have created this on your initial login.",
-                    "placeholder": "",
-                    "multiLine": false,
-                    "constraints": {
-                      "required": true,
-                      "validations": []
-                    },
-                    "visible": true
-                  },
-                  {
-                    "name": "prosimoApiToken",
-                    "type": "Microsoft.Common.PasswordBox",
-                    "label": {
-                      "password": "Prosimo API Token"
-                    },
-                    "toolTip": "",
-                    "constraints": {
-                      "required": true
-                    },
-                    "options": {
-                      "hideConfirmation": true
-                    },
-                    "visible": true
-                  }
-                ]
-              },
-              {
-                "name": "tagStep",
-                "label": "Tags",
-                "elements": [
-                  {
-                    "name": "tags",
-                    "type": "Microsoft.Common.TagsByResource",
-                    "resources": [
-                      "Microsoft.Storage/storageAccounts",
-                      "Microsoft.Compute/virtualMachines"
+                },
+                {
+                    "name": "azureStep",
+                    "label": "Azure Setup",
+                    "elements": [
+                        {
+                            "name": "introText",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": true,
+                            "options": {
+                                "icon": "Info",
+                                "text": "Select the susbcription where the initial onboarding was done. This subscription will contain a Key Vault that starts with kv-prosimo. The same resource group as the Key Vault will be used to provision a deployment script. This script will run against the Prosimo REST API to onboard Azure susbcriptions contained in the Managment Group selected in the prior step. Note that this only enables those subscriptions to have endpoints onboarded into Prosimo at a later time, and doesn't actually connect any endpoints."
+                            }
+                        },
+                        {
+                            "name": "deploymentDetails",
+                            "label": "Prosimo Key Vault",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionId",
+                                    "label": "Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription for the Prosimo deployment script.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('azureStep').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "keyVaultNameApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('azureStep').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/vaults?api-version=2021-10-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "keyVaultId",
+                                    "label": "Key Vault",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription for the Prosimo deployment script.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('azureStep').deploymentDetails.keyVaultNameApi.value,(item) => contains(item.name, 'kv-prosimo')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                }
+                            ]
+                        }
                     ]
-                  }
-                ]
-              }
-
-
-          ]
-      },
-      "outputs": {
-          "kind": "ManagementGroup",
-          "location": "[steps('basics').resourceScope.location.name]",
-          "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
-          "parameters": {
-              "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",
-              "subscriptionId": "[steps('azureStep').deploymentDetails.subscriptionId]",
-              "prosimoTeamName": "[steps('prosimoStep').prosimoTeamName]",
-              "prosimoApiToken": "[steps('prosimoStep').prosimoApiToken]",
-              "clientId": "[steps('azureStep').deploymentDetails.clientId]",
-              "clientSecret": "[steps('azureStep').deploymentDetails.clientSecret]"
-          }
-      }        
-  }
+                },
+                {
+                    "name": "prosimoStep",
+                    "label": "Prosimo Identity Setup",
+                    "elements": [
+                        {
+                            "name": "introText",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": true,
+                            "options": {
+                                "icon": "Info",
+                                "text": "In order to complete this step you must have configured an API key from your Prosimo dashboard. You can generate an API token here: https://teamname.admin.prosimo.io/dashboard/management/api-tokens replacing teamname with your Prosimo team name."
+                            }
+                        },
+                        {
+                            "name": "prosimoTeamName",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Prosimo Team Name",
+                            "defaultValue": "",
+                            "toolTip": "Enter the name of your Prosimo Team. You will have created this on your initial login.",
+                            "placeholder": "",
+                            "multiLine": false,
+                            "constraints": {
+                                "required": true,
+                                "validations": []
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "prosimoApiToken",
+                            "type": "Microsoft.Common.PasswordBox",
+                            "label": {
+                                "password": "Prosimo API Token"
+                            },
+                            "toolTip": "",
+                            "constraints": {
+                                "required": true
+                            },
+                            "options": {
+                                "hideConfirmation": true
+                            },
+                            "visible": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "outputs": {
+            "kind": "ManagementGroup",
+            "location": "[steps('basics').resourceScope.location.name]",
+            "managementGroupId": "[steps('basics').resourceScope.managementGroup.id]",
+            "parameters": {
+                "managementGroupName": "[steps('basics').resourceScope.managementGroup.name]",
+                "subscriptionId": "[steps('azureStep').deploymentDetails.subscriptionId]",
+                "prosimoTeamName": "[steps('prosimoStep').prosimoTeamName]",
+                "prosimoApiToken": "[steps('prosimoStep').prosimoApiToken]",
+                "keyVaultId": "[steps('azureStep').deploymentDetails.keyVaultId]"
+            }
+        }
+    }
 }

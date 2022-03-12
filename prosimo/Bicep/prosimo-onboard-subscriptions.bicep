@@ -52,13 +52,27 @@ module createIdentity './Modules/managed-identity.bicep' = {
   }
 }
 
-module assignReaderRole './Modules/assign-role-mgt-scope.bicep' = {
-  name: 'assignReaderRole-${time}'
+module assignMgtReaderRole './Modules/assign-role-mgt-scope.bicep' = {
+  name: 'assignMgtReader-${time}'
   params: {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
     roleId: reader
     assignmentGuid: guid(managementGroup().id, reader, createIdentity.outputs.identityResourceId)
+  }
+}
+
+module assignRgReaderRole './Modules/assign-role-rg-scope.bicep' = {
+  scope: resourceGroup(subscriptionGuid, resourceGroupName)
+  dependsOn: [
+    scriptResourceGroup
+  ]
+  name: 'assignRgReader-${time}'
+  params: {
+    principalId: createIdentity.outputs.identityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleId: reader
+    assignmentGuid: guid(scriptResourceGroup.outputs.resourceGroupId, reader, createIdentity.outputs.identityResourceId)
   }
 }
 

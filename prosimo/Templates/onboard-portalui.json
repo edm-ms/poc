@@ -15,7 +15,7 @@
                           "visible": true,
                           "options": {
                             "icon": "Info",
-                            "text": "This will provision an Azure Deployment Script to make REST calls to your Prosimo SaaS platform. The management group selected will be scanned, and all subscriptions contained within the hierarchy will be added as accounts in your PRosimo dashboard. These accounts may be used to onboard applications into the Prosimo Platform."
+                            "text": "This will provision an Azure Deployment Script to make REST calls to your Prosimo SaaS platform. The management group selected will be scanned, and all subscriptions contained within the hierarchy will be added as accounts in your Prosimo dashboard. These accounts may be used to onboard applications into the Prosimo Platform."
                           }
                         },
                         {

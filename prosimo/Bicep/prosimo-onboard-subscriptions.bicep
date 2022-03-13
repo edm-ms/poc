@@ -3,28 +3,36 @@ targetScope = 'managementGroup'
 param location string = deployment().location
 param prosimoTeamName string
 param prosimoApiToken string
-param clientId string
-param clientSecret string
+param keyVaultId string
+param clientId string = 'prosimoSPClientId'
+param clientSecret string = 'prosimoSPpassword'
 param managementGroupName string
 param subscriptionId string
 param time string = utcNow()
 
 var scriptRole = json(loadTextContent('../Parameters/script-role.json'))
 var reader = '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7'
-var resourceGroupName = 'removeThis-${guid(subscriptionGuid)}'
+var resourceGroupName = 'rg-prosimo-${take(guid(subscriptionGuid), 8)}'
+var keyVaultName = split(keyVaultId, '/')[8]
 var subscriptionGuid = replace(subscriptionId, '/subscriptions/', '')
+var prosimoApiSecret = 'prosimoApiPassword'
 var tags = {
-  'Created for': 'https://${prosimoTeamName}.admin.prosimo.io/'
-  'Action': 'Please delete, this is no longer needed'
+  'Prosimo Team Name': prosimoTeamName
+  'Purpose': 'Used to store Service Principal ID and secret for Prosimo orchestration'
 }
 
-module scriptResourceGroup 'Modules/resource-group.bicep' = {
+resource scriptResourceGroup 'Microsoft.Resources/resourceGroups@2021-01-01' existing = {
   scope: subscription(subscriptionGuid)
-  name: 'scriptRg-${time}'
+  name: resourceGroupName
+}
+
+module addProsimoApi 'Modules/keyvault-secret.bicep' = {
+  scope: scriptResourceGroup
+  name: 'addApi-${time}'
   params: {
-    resourceGroupName: resourceGroupName
-    location: location
-    tags: tags
+    keyVaultName: keyVaultName
+    secretName: prosimoApiSecret
+    secretValue: prosimoApiToken
   }
 }
 
@@ -72,7 +80,7 @@ module assignRgReaderRole './Modules/assign-role-rg-scope.bicep' = {
     principalId: createIdentity.outputs.identityPrincipalId
     principalType: 'ServicePrincipal'
     roleId: reader
-    assignmentGuid: guid(scriptResourceGroup.outputs.resourceGroupId, reader, createIdentity.outputs.identityResourceId)
+    assignmentGuid: guid(scriptResourceGroup.id, reader, createIdentity.outputs.identityResourceId)
   }
 }
 
@@ -91,6 +99,10 @@ module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
   scope: resourceGroup(subscriptionGuid, resourceGroupName)
   dependsOn: [
     scriptResourceGroup
+    assignScriptRole
+    assignRgReaderRole
+    assignMgtReaderRole
+    addProsimoApi
   ]
   name: 'onboardSubs-${time}'
   params: {
@@ -102,5 +114,6 @@ module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
     prosimoTeamName: prosimoTeamName
     managementGroupName: managementGroupName
     location: location
+    keyVaultName: keyVaultName
   }
 }

@@ -110,7 +110,7 @@ module onboardSubscriptions './Modules/prosimo-onboard-script.bicep' = {
     clientSecret: clientSecret
     identityId: createIdentity.outputs.identityResourceId
     name: 'onboardSubToProsimo'
-    prosimoApiToken: prosimoApiToken
+    prosimoApiToken: prosimoApiSecret
     prosimoTeamName: prosimoTeamName
     managementGroupName: managementGroupName
     location: location

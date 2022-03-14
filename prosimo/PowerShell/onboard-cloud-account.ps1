@@ -8,7 +8,7 @@ param(
   [string] [Parameter(Mandatory=$true)] $keyVaultName
 )
 
-$vaultUrl = 'https://$keyVaultName.vault.azure.net'
+$vaultUrl = "https://$keyVaultName.vault.azure.net"
 
 $clientSecretUri = $vaultUrl + '/secrets/' + $clientId + '?api-version=2016-10-01'
 $spSecretURI = $vaultUrl + '/secrets/' + $clientSecret + '?api-version=2016-10-01'

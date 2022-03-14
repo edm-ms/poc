@@ -30,7 +30,7 @@ $headers = @{
   "Prosimo-ApiToken" = $prosimoApiToken
 }
 
-$apiUrl = "https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds"
+$apiUrl = "https://" + $prosimoTeamName + ".admin.prosimo.io/api/cloud/creds"
 
 foreach ($subscription in $subscriptionList) {
   $subscriptionId = $subscription.Split("/")[2]

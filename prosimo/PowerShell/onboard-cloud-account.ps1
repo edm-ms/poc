@@ -10,8 +10,8 @@ param(
 
 $vaultUrl = "https://$keyVaultName.vault.azure.net"
 
-$clientSecretUri = $vaultUrl + '//secrets//' + $clientId + '?api-version=2016-10-01'
-$spSecretURI = $vaultUrl + '//secrets//' + $clientSecret + '?api-version=2016-10-01'
+$clientSecretUri = $vaultUrl + \\"secrets\\" + $clientId + \\"?api-version=2016-10-01\\"
+$spSecretURI = $vaultUrl + \'//secrets//\' + $clientSecret + \'?api-version=2016-10-01\'
 $prosimoApiSecretURI = $vaultUrl + '//secrets//' + $prosimoApiToken + '?api-version=2016-10-01'
 
 $Response = Invoke-RestMethod -Uri 'http://169.254.169.254//metadata//identity//oauth2//token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata="true"}

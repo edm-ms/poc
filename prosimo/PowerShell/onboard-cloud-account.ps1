@@ -49,4 +49,5 @@ foreach ($subscription in $subscriptionList) {
   }
 
   Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body
+  
 }

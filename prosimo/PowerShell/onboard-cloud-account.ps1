@@ -10,8 +10,6 @@ param(
 
 $vaultUrl = "https://$keyVaultName.vault.azure.net"
 
-$secretPath = '/'
-
 $clientSecretUri = $vaultUrl + '//secrets//' + $clientId + '?api-version=2016-10-01'
 $spSecretURI = $vaultUrl + '//secrets//' + $clientSecret + '?api-version=2016-10-01'
 $prosimoApiSecretURI = $vaultUrl + '//secrets//' + $prosimoApiToken + '?api-version=2016-10-01'

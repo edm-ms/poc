@@ -21,7 +21,7 @@ $clientId = (Invoke-RestMethod -Uri $clientSecretUri -Method GET -Headers @{Auth
 $clientSecret = (Invoke-RestMethod -Uri $spSecretURI -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"}).value
 $prosimoApiToken = (Invoke-RestMethod -Uri $prosimoApiSecretURI -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"}).value
 
-Install-Module -Name Az.ResourceGraph -Force
+if (-not (Get-Module -Name Az.ResourceGraph)) { Install-Module -Name Az.ResourceGraph -Force }
 
 $subscriptionList = (Search-AzGraph -Query "ResourceContainers | where type =~ 'microsoft.resources/subscriptions'" -ManagementGroup $managementGroupName).id
 
@@ -36,18 +36,16 @@ foreach ($subscription in $subscriptionList) {
   $subscriptionId = $subscription.Split("/")[2]
   $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name 
 
-  $details = [PSCustomObject]@{
-    "clientID" = "$clientId"
-    "clientSecret" = "$clientSecret"
-    "subscriptionID" = "$subscriptionId"
-    "tenantID" = "$tenantId"
-  }
-
   $body = @{
     "cloudType" = "AZURE"
     "keyType" = "AZUREKEY"
     "name" = "$subscriptionName"
-    "details" = $details
+    "details" = [PSCustomObject]@{
+      "clientID" = "$clientId"
+      "clientSecret" = "$clientSecret"
+      "subscriptionID" = "$subscriptionId"
+      "tenantID" = "$tenantId"
+    }
   }
 
   Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body

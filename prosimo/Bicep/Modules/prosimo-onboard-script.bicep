@@ -65,17 +65,20 @@ resource script 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
       $subscriptionId = $subscription.Split("/")[2]
       $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name 
     
+      $details = [PSCustomObject]@{
+        "clientID" = "$clientId"
+        "clientSecret" = "$clientSecret"
+        "subscriptionID" = "$subscriptionId"
+        "tenantID" = "$tenantId"
+      }
+    
       $body = @{
         "cloudType" = "AZURE"
         "keyType" = "AZUREKEY"
         "name" = "$subscriptionName"
-        "details" = [PSCustomObject]@{
-            "clientID" = "$clientId"
-            "clientSecret" = "$clientSecret"
-            "subscriptionID" = "$subscriptionId"
-            "tenantID" = "$tenantId"
-        }
+        "details" = $details
       }
+    
       Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body
     }
     '''

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "9660794901421212143"
+      "templateHash": "116948849502650282"
     }
   },
   "parameters": {
@@ -479,7 +479,7 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('subscriptionGuid'), variables('resourceGroupName')), 'Microsoft.Resources/deployments', format('managedIdentity-{0}', parameters('time')))).outputs.identityResourceId.value]"
           },
           "name": {
-            "value": "onboardSubToProsimo"
+            "value": "prosimo-onboard-subscriptions"
           },
           "prosimoApiToken": {
             "value": "[variables('prosimoApiSecret')]"
@@ -504,7 +504,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1272.37030",
-              "templateHash": "4075633161836988275"
+              "templateHash": "7717155693652098896"
             }
           },
           "parameters": {
@@ -559,7 +559,7 @@
                 "retentionInterval": "P1D",
                 "timeout": "PT1H",
                 "arguments": "[format('-prosimoTeamName ''{0}'' -prosimoApiToken ''{1}'' -clientId ''{2}'' -managementGroupName ''{3}'' -tenantId ''{4}'' -clientSecret ''{5}'' -keyVaultName ''{6}'' ', parameters('prosimoTeamName'), parameters('prosimoApiToken'), parameters('clientId'), parameters('managementGroupName'), variables('tenantId'), parameters('clientSecret'), parameters('keyVaultName'))]",
-                "scriptContent": "    param(\n      [string] [Parameter(Mandatory=$true)] $prosimoTeamName,\n      [string] [Parameter(Mandatory=$true)] $prosimoApiToken,\n      [string] [Parameter(Mandatory=$true)] $clientId,\n      [string] [Parameter(Mandatory=$true)] $clientSecret,\n      [string] [Parameter(Mandatory=$true)] $managementGroupName,\n      [string] [Parameter(Mandatory=$true)] $tenantId,\n      [string] [Parameter(Mandatory=$true)] $keyVaultName\n    )\n    \n    $vaultUrl = \"https://$keyVaultName.vault.azure.net\"\n\n    $clientSecretUri = $vaultUrl + \"/secrets/\" + $clientId + \"?api-version=2016-10-01\"\n    $spSecretURI = $vaultUrl + \"/secrets/\" + $clientSecret + \"?api-version=2016-10-01\"\n    $prosimoApiSecretURI = $vaultUrl + \"/secrets/\" + $prosimoApiToken + \"?api-version=2016-10-01\"\n    \n    $Response = Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata=\"true\"}\n    $KeyVaultToken = $Response.access_token\n    \n    $clientId = (Invoke-RestMethod -Uri $clientIdURI -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n    $clientSecret = (Invoke-RestMethod -Uri $spSecretURI -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n    $prosimoApiToken = (Invoke-RestMethod -Uri $prosimoApiSecretURI -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n\n      Install-Module -Name Az.ResourceGraph -Force\n      $subscriptionList = (Search-AzGraph -Query \"ResourceContainers | where type =~ 'microsoft.resources/subscriptions'\" -ManagementGroup $managementGroupName).id\n    \n        $headers = @{\n          'content-type' = 'application/json'\n          'Prosimo-ApiToken' = $prosimoApiToken\n        }\n    \n        $uri = \"https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds\"\n\n        foreach ($subscription in $subscriptionList) {\n          $subscriptionId = $subscription.Split(\"/\")[2]\n          $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name \n    \n          $body = @\"\n          {\n            \"cloudType\": \"AZURE\",\n            \"keyType\": \"AZUREKEY\",\n            \"name\": \"$subscriptionName\",\n            \"details\": {\n                \"clientID\": \"$clientId\",\n                \"clientSecret\": \"$clientSecret\",\n                \"subscriptionID\": \"$subscriptionId\",\n                \"tenantID\": \"$tenantId\"\n            }\n        }    \n\"@\n          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body\n        }\n    "
+                "scriptContent": "    param(\n      [string] [Parameter(Mandatory=$true)] $prosimoTeamName,\n      [string] [Parameter(Mandatory=$true)] $prosimoApiToken,\n      [string] [Parameter(Mandatory=$true)] $clientId,\n      [string] [Parameter(Mandatory=$true)] $clientSecret,\n      [string] [Parameter(Mandatory=$true)] $managementGroupName,\n      [string] [Parameter(Mandatory=$true)] $tenantId,\n      [string] [Parameter(Mandatory=$true)] $keyVaultName\n    )\n    \n    $vaultUrl = \"https://$keyVaultName.vault.azure.net\"\n    \n    $clientSecretUri = $vaultUrl + \"/secrets/\" + $clientId + \"?api-version=2016-10-01\"\n    $spSecretURI = $vaultUrl + \"/secrets/\" + $clientSecret + \"?api-version=2016-10-01\"\n    $prosimoApiSecretURI = $vaultUrl + \"/secrets/\" + $prosimoApiToken + \"?api-version=2016-10-01\"\n    \n    $Response = Invoke-RestMethod -Uri \"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net\" -Method GET -Headers @{Metadata=\"true\"}\n    $KeyVaultToken = $Response.access_token\n    \n    $clientId = (Invoke-RestMethod -Uri $clientSecretUri -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n    $clientSecret = (Invoke-RestMethod -Uri $spSecretURI -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n    $prosimoApiToken = (Invoke-RestMethod -Uri $prosimoApiSecretURI -Method GET -Headers @{Authorization=\"Bearer $KeyVaultToken\"}).value\n    \n    Install-Module -Name Az.ResourceGraph -Force\n    \n    $subscriptionList = (Search-AzGraph -Query \"ResourceContainers | where type =~ 'microsoft.resources/subscriptions'\" -ManagementGroup $managementGroupName).id\n    \n    $headers = @{\n      \"content-type\" = \"application/json\"\n      \"Prosimo-ApiToken\" = $prosimoApiToken\n    }\n    \n    $apiUrl = \"https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds\"\n    \n    foreach ($subscription in $subscriptionList) {\n      $subscriptionId = $subscription.Split(\"/\")[2]\n      $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name \n    \n      $body = @{\n        \"cloudType\" = \"AZURE\"\n        \"keyType\" = \"AZUREKEY\"\n        \"name\" = \"$subscriptionName\"\n        \"details\" = [PSCustomObject]@{\n            \"clientID\" = \"$clientId\"\n            \"clientSecret\" = \"$clientSecret\"\n            \"subscriptionID\" = \"$subscriptionId\"\n            \"tenantID\" = \"$tenantId\"\n        }\n      }\n      Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body\n    }\n    "
               }
             }
           ],

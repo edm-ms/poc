@@ -33,7 +33,7 @@
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "Choose a subscription to scope the 'Infrastructure' role and create the Key Vault. This subscription will be where Prosimo Edges will be deployed. It is recommended to use a 'Connectivity' or 'Transi' subscription for this step.",
+                                        "text": "Choose a subscription to scope the 'Infrastructure' role and create the Key Vault. This subscription will be where Prosimo Edges will be deployed. It is recommended to use a 'Connectivity' or 'Transit' subscription for this step.",
                                         "style": "Info"
                                     }
                                 },

@@ -30,7 +30,7 @@ $headers = @{
   "Prosimo-ApiToken" = $prosimoApiToken
 }
 
-$uri = "https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds"
+$apiUrl = "https://$prosimoTeamName.admin.prosimo.io/api/cloud/creds"
 
 foreach ($subscription in $subscriptionList) {
   $subscriptionId = $subscription.Split("/")[2]
@@ -47,5 +47,5 @@ foreach ($subscription in $subscriptionList) {
         "tenantID" = "$tenantId"
     }
   }
-  Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
+  Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body
 }

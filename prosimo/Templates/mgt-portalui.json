@@ -11,14 +11,11 @@
                     "elements": [
                         {
                             "name": "deploymentDetailsText",
-                            "type": "Microsoft.Common.TextBlock",
+                            "type": "Microsoft.Common.InfoBox",
                             "visible": true,
                             "options": {
-                                "text": "Select the management group where the custom roles will be created and access will be scoped.",
-                                "link": {
-                                    "label": "",
-                                    "uri": ""
-                                }
+                                "text": "This deployment will create an Azure Key Vault, 2 custom roles ('Application' and 'Infrastructure'), and a service principal used for Prosimo orchestration. The 'Application Role' will be scoped to the management group selected on this step. It is recommended to scope this to a top level management group so that any downstream subscription may be easily onboarded.",
+                                "style": "Info"
                             }
                         },   
                         {
@@ -36,9 +33,8 @@
                                     "type": "Microsoft.Common.InfoBox",
                                     "visible": true,
                                     "options": {
-                                        "text": "This deployment will create 2 custom roles, a service principal, and assign these roles at the specified scope. The Prosimo AIR Engine then leverages the service principal and its assigned roles to orchestrate Prosimo Edge creation as well as the on-boarding of applications.",
-                                        "style": "Info",
-                                        "uri": "https://help.prosimo.io/hc/en-us/articles/360047151112"
+                                        "text": "Choose a subscription to scope the 'Infrastructure' role and create the Key Vault. This subscription will be where Prosimo Edges will be deployed. It is recommended to use a 'Connectivity' or 'Transi' subscription for this step.",
+                                        "style": "Info"
                                     }
                                 },
                                 {

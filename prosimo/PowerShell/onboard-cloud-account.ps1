@@ -36,17 +36,19 @@ foreach ($subscription in $subscriptionList) {
   $subscriptionId = $subscription.Split("/")[2]
   $subscriptionName = (Get-AzSubscription -SubscriptionId $subscriptionId).Name 
 
-  $body = @{
-    "cloudType" = "AZURE"
-    "keyType" = "AZUREKEY"
-    "name" = "$subscriptionName"
-    "details" = [PSCustomObject]@{
-      "clientID" = "$clientId"
-      "clientSecret" = "$clientSecret"
-      "subscriptionID" = "$subscriptionId"
-      "tenantID" = "$tenantId"
+  $body = @"
+  {
+    "cloudType": "AZURE",
+    "keyType": "AZUREKEY",
+    "name": "$subscriptionName",
+    "details": {
+      "clientID": "$clientId",
+      "clientSecret": "$clientSecret",
+      "subscriptionID": "$subscriptionId",
+      "tenantID": "$tenantId"
     }
   }
+"@
 
   Invoke-RestMethod -Method Post -Uri $apiUrl -Headers $headers -Body $body
   
